@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hour 1 — What Good Looks Like (Audience-First Redesign)</title>
+<!--
+  ============================================================
+  AUDIENCE-FIRST REDESIGN of hour1-what-good-looks-like.html
+  ------------------------------------------------------------
+  Purpose: show how the SAME story lands better for a leadership
+  audience when each slide carries ONE idea, the detail moves to
+  spoken notes, and points are REVEALED one at a time.
+
+  Design rules applied:
+   • One message per slide (say it big)
+   • Visuals over bullet walls (diagrams, one number, one metaphor)
+   • Progressive reveal — press → to reveal each point in turn
+   • Reference detail lives in .note (presenter notes), not on screen
+   • ≤6 lines, ≤6 words per line on audience slides
+
+  Controls:  ← →  navigate / reveal   ·   F fullscreen   ·   N notes
+  ============================================================
+-->
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --panel: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-2: #3fb950;
+    --accent-3: #d29922;
+    --danger: #f85149;
+    --purple: #bc8cff;
+    --radius: 16px;
+    --shadow: 0 18px 50px rgba(0,0,0,.45);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: radial-gradient(1200px 800px at 80% -10%, rgba(88,166,255,.08), transparent 60%), var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+  }
+
+  .deck { position: fixed; inset: 0; }
+
+  .slide {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; justify-content: center;
+    padding: 70px 100px 90px;
+    animation: fade .45s ease;
+  }
+  .slide.active { display: flex; }
+
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Progressive build (disabled — all content shows at once) */
+  .frag { opacity: 1; transform: none; transition: none; }
+  .frag.on { opacity: 1; transform: none; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 14px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin-bottom: 22px;
+  }
+  .eyebrow::before { content: ""; width: 30px; height: 2px; background: var(--accent); }
+
+  h1 { font-size: 60px; line-height: 1.06; font-weight: 800; letter-spacing: -.02em; max-width: 20ch; }
+  h2 { font-size: 44px; line-height: 1.08; font-weight: 800; letter-spacing: -.01em; }
+  .lead { font-size: 22px; color: var(--muted); max-width: 60ch; margin-top: 20px; line-height: 1.5; }
+
+  /* Big single statement */
+  .big {
+    font-size: 40px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em;
+    max-width: 26ch; margin-top: 18px;
+  }
+  .big .hl { color: var(--accent); }
+  .big .hl-g { color: var(--accent-2); }
+
+  /* Title slide */
+  .title-slide h1 { font-size: 66px; }
+  .badge-row { display: flex; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
+  .badge {
+    background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px;
+    padding: 11px 20px; font-size: 16px; color: var(--text);
+    display: inline-flex; align-items: center; gap: 9px;
+  }
+  .badge .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-2); }
+
+  /* Pendulum: before -> after, visual */
+  .swing { display: flex; align-items: stretch; gap: 30px; margin-top: 40px; max-width: 1000px; }
+  .swing .side {
+    flex: 1; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 30px 32px; background: var(--bg-soft); box-shadow: var(--shadow);
+  }
+  .swing .side .tag {
+    font-size: 13px; letter-spacing: .1em; text-transform: uppercase; font-weight: 800; margin-bottom: 14px;
+  }
+  .swing .from { border-left: 4px solid var(--danger); }
+  .swing .from .tag { color: var(--danger); }
+  .swing .to { border-left: 4px solid var(--accent-2); }
+  .swing .to .tag { color: var(--accent-2); }
+  .swing .side .line { display: flex; flex-direction: column; gap: 13px; }
+  .swing .side .ln { font-size: 22px; line-height: 1.3; color: var(--text); font-weight: 600; display: flex; align-items: center; gap: 13px; }
+  .swing .side .ln::before { font-weight: 800; font-size: 18px; width: 22px; text-align: center; flex: 0 0 auto; }
+  .swing .from .ln::before { content: "\2715"; color: var(--danger); }
+  .swing .to .ln::before { content: "\2713"; color: var(--accent-2); }
+  .swing .arrow { display: grid; place-items: center; font-size: 40px; color: var(--accent); }
+
+  /* Inheritance fan-out: set once -> every repo inherits */
+  .inherit { margin-top: 46px; max-width: 1040px; display: flex; flex-direction: column; align-items: center; }
+  .inherit .source {
+    border: 1px solid rgba(88,166,255,.45); border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(88,166,255,.12), var(--bg-soft));
+    box-shadow: var(--shadow); padding: 26px 36px; text-align: center;
+  }
+  .inherit .source .src-lbl { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 800; color: var(--accent); margin-bottom: 15px; }
+  .inherit .source .pills { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .inherit .pill {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    border: 1px solid var(--border); border-radius: 16px; padding: 12px 22px; background: var(--panel);
+  }
+  .inherit .pill .p-t { font-size: 18px; font-weight: 700; color: var(--text); }
+  .inherit .pill .p-s { font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .inherit .drop { display: flex; flex-direction: column; align-items: center; margin: 22px 0 16px; }
+  .inherit .drop .ar { font-size: 32px; color: var(--accent); line-height: 1; }
+  .inherit .drop .cap { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-2); font-weight: 800; margin-top: 7px; }
+  .inherit .repos { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .inherit .repo {
+    display: flex; align-items: center; gap: 9px; font-size: 18px; font-weight: 600; color: var(--text);
+    border: 1px solid rgba(63,185,80,.45); border-radius: 12px; padding: 13px 20px; background: rgba(63,185,80,.08);
+  }
+  .inherit .repo::before { content: "\2713"; color: var(--accent-2); font-weight: 800; font-size: 16px; }
+  .inherit .repo.more { color: var(--muted); background: var(--bg-soft); border-style: dashed; border-color: var(--border); }
+  .inherit .repo.more::before { content: ""; }
+
+  /* Convergence gate: every change funnels through one checkpoint */
+  .cgate { margin-top: 40px; max-width: 980px; display: flex; flex-direction: column; align-items: center; }
+  .cgate .sources { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .cgate .src {
+    font-size: 16px; font-weight: 600; color: var(--text);
+    border: 1px solid var(--border); border-radius: 12px; padding: 11px 20px; background: var(--panel);
+  }
+  .cgate .merge-arrows { font-size: 26px; color: var(--accent); line-height: 1; margin: 14px 0 4px; letter-spacing: .35em; }
+  .cgate .gate-cap { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 14px; }
+  .cgate .check {
+    width: 100%; max-width: 720px; text-align: center;
+    border: 1px solid rgba(88,166,255,.5); border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(88,166,255,.14), var(--bg-soft));
+    box-shadow: var(--shadow); padding: 22px 30px;
+  }
+  .cgate .check .ttl { font-size: 24px; font-weight: 800; color: var(--text); display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .cgate .check .ttl .em { font-size: 26px; }
+  .cgate .check .enf { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+  .cgate .check .enf span {
+    font-size: 13px; font-weight: 600; color: var(--accent);
+    border: 1px solid rgba(88,166,255,.35); border-radius: 20px; padding: 6px 15px; background: rgba(88,166,255,.08);
+  }
+  .cgate .drop2 { display: flex; flex-direction: column; align-items: center; margin: 16px 0 14px; }
+  .cgate .drop2 .ar { font-size: 30px; color: var(--accent-2); line-height: 1; }
+  .cgate .merged {
+    display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; color: var(--text);
+    border: 1px solid rgba(63,185,80,.45); border-radius: 12px; padding: 12px 24px; background: rgba(63,185,80,.08);
+  }
+  .cgate .merged::before { content: "\2713"; color: var(--accent-2); font-weight: 800; font-size: 17px; }
+
+  /* See -> Control sequence: visibility unlocks control */
+  .seq { display: flex; align-items: stretch; justify-content: center; gap: 0; margin-top: 40px; max-width: 1020px; }
+  .seq .step {
+    flex: 1; border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 28px 30px; text-align: left; position: relative;
+  }
+  .seq .step.see { border: 1px solid rgba(210,153,34,.5); background: linear-gradient(180deg, rgba(210,153,34,.12), var(--bg-soft)); }
+  .seq .step.control { border: 1px solid rgba(63,185,80,.45); background: linear-gradient(180deg, rgba(63,185,80,.10), var(--bg-soft)); }
+  .seq .step .num { font-size: 13px; font-weight: 800; letter-spacing: .1em; }
+  .seq .step.see .num { color: var(--accent-3); }
+  .seq .step.control .num { color: var(--accent-2); }
+  .seq .step .hd { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+  .seq .step .hd .em { font-size: 32px; }
+  .seq .step .hd .t { font-size: 26px; font-weight: 800; color: var(--text); }
+  .seq .step .s { font-size: 16px; color: var(--muted); margin-top: 12px; line-height: 1.45; }
+  .seq .arrow {
+    flex: 0 0 auto; align-self: center; margin: 0 22px; text-align: center;
+  }
+  .seq .arrow .ico { font-size: 30px; color: var(--accent); line-height: 1; }
+  .seq .arrow .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-top: 6px; max-width: 110px; }
+
+  /* Icon idea grid — minimal words */
+  .ideas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 40px; max-width: 1050px; }
+  .ideas.tri { grid-template-columns: repeat(3, 1fr); }
+  .idea {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    padding: 30px 30px; box-shadow: var(--shadow);
+    display: flex; gap: 18px; align-items: center;
+  }
+  .idea .em { font-size: 40px; flex: 0 0 auto; }
+  .idea .t { font-size: 24px; font-weight: 700; line-height: 1.2; }
+  .idea .s { font-size: 16px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  .idea.tri { flex-direction: column; align-items: flex-start; }
+  .idea.tri .em { font-size: 36px; }
+
+  /* Pipeline / SDLC */
+  .pipe { display: flex; align-items: stretch; gap: 0; margin-top: 44px; }
+  .pstep {
+    flex: 1; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 16px; text-align: center; position: relative;
+  }
+  .pstep + .pstep { margin-left: 34px; }
+  .pstep + .pstep::before {
+    content: "→"; position: absolute; left: -28px; top: 50%; transform: translateY(-50%);
+    color: var(--accent); font-size: 26px; font-weight: 700;
+  }
+  .pstep .em { font-size: 30px; }
+  .pstep .t { font-size: 21px; font-weight: 700; margin: 10px 0 0; }
+  .pstep .cap { font-size: 12.5px; color: var(--muted); margin-top: 7px; line-height: 1.3; }
+  .pstep.ai .cap { color: var(--purple); }
+  .pstep.ai { border-color: rgba(188,140,255,.5); background: rgba(188,140,255,.08); }
+  .pstep .pill { display:inline-block; margin-top:10px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--purple); border:1px solid rgba(188,140,255,.4); border-radius:999px; padding:3px 9px; }
+
+  /* Accountability hand-off */
+  .handoff { display: grid; grid-template-columns: 1fr auto 1fr; gap: 28px; align-items: center; margin-top: 44px; max-width: 1000px; }
+  .ho-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 30px 34px; background: var(--bg-soft); }
+  .ho-card .lbl { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; font-weight: 800; margin-bottom: 12px; }
+  .ho-ai .lbl { color: var(--purple); }
+  .ho-hu { border-color: rgba(63,185,80,.5); background: rgba(63,185,80,.07); }
+  .ho-hu .lbl { color: var(--accent-2); }
+  .ho-card .v { font-size: 26px; font-weight: 700; line-height: 1.3; }
+  .handoff .gate { text-align: center; }
+  .handoff .gate .ico { font-size: 46px; color: var(--accent); line-height: 1; }
+  .handoff .gate .cap { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-top: 8px; }
+
+  /* One-number stat */
+  .stat { margin-top: 36px; display: flex; align-items: baseline; gap: 22px; flex-wrap: wrap; }
+  .stat .n { font-size: 110px; font-weight: 800; letter-spacing: -.03em; color: var(--accent-3); line-height: .9; }
+  .stat .cap { font-size: 24px; color: var(--text); max-width: 22ch; line-height: 1.35; }
+
+  /* Closing principle band */
+  .principle {
+    margin-top: 44px; border: 2px solid var(--accent-2); border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(63,185,80,.10), var(--bg-soft));
+    padding: 28px 34px; max-width: 1000px;
+  }
+  .principle .k { text-transform: uppercase; letter-spacing: .14em; font-size: 13px; color: var(--accent-2); font-weight: 800; margin-bottom: 12px; }
+  .principle .v { font-size: 30px; font-weight: 700; line-height: 1.3; }
+  .principle .v .g { color: var(--accent-2); }
+
+  /* "In GitHub" — light platform proof, not a feature dump */
+  .gh-strip {
+    margin-top: 30px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    border: 1px solid rgba(88,166,255,.32); border-radius: 999px;
+    background: rgba(88,166,255,.06); padding: 11px 20px; max-width: max-content;
+  }
+  .gh-strip .gh-lbl {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 800; color: var(--accent);
+    white-space: nowrap;
+  }
+  .gh-strip .gh-lbl svg { width: 17px; height: 17px; fill: var(--accent); }
+  .gh-strip .gh-items { font-size: 15px; color: var(--muted); line-height: 1.4; }
+  .gh-strip .gh-items b { color: var(--text); font-weight: 600; }
+
+  /* Sales punchline under the platform strip */
+  .gh-pitch {
+    margin-top: 14px; display: flex; gap: 11px; align-items: baseline;
+    font-size: 17px; line-height: 1.45; color: var(--muted); max-width: 78ch;
+  }
+  .gh-pitch::before {
+    content: "\2726"; color: var(--accent); font-size: 15px; flex: 0 0 auto;
+  }
+  .gh-pitch b { color: var(--text); font-weight: 700; }
+  .gh-pitch .hl { color: var(--accent); font-weight: 700; }
+
+  /* Speaker notes (hidden on stage; toggle with N) */
+  .note { display: none; }
+  body.notes .note {
+    display: block; position: fixed; left: 0; right: 0; bottom: 0;
+    background: rgba(8,11,16,.96); border-top: 1px solid var(--border);
+    padding: 18px 32px 26px; font-size: 15px; line-height: 1.6; color: var(--muted);
+    max-height: 38vh; overflow: auto; z-index: 40;
+  }
+  body.notes .slide.active .note { display: block; }
+  .slide .note { display: none; }
+  body.notes .slide.active .note { display: block; }
+  .note b { color: var(--text); }
+
+  /* Chrome */
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); transition: width .35s ease; z-index: 10; }
+  .pagenum { position: fixed; top: 22px; right: 30px; font-size: 14px; color: var(--muted); z-index: 11; }
+  .nav-hint { position: fixed; bottom: 16px; left: 32px; font-size: 13px; color: var(--muted); z-index: 11; display: flex; gap: 6px; align-items: center; }
+  kbd { background: var(--bg-soft); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px; padding: 2px 7px; font-size: 12px; color: var(--text); }
+  .controls { position: fixed; bottom: 14px; right: 24px; display: flex; gap: 8px; z-index: 11; }
+  .controls button { width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); font-size: 17px; cursor: pointer; display: grid; place-items: center; transition: .15s; }
+  .controls button:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="pagenum"><span id="cur">1</span> / <span id="total">12</span></div>
+
+<div class="deck" id="deck">
+
+  <!-- ===== S1: Opener ===== -->
+  <section class="slide title-slide active">
+    <div class="eyebrow">Leadership hour</div>
+    <h1>From platform adoption to <span style="color:var(--accent)">engineering transformation</span></h1>
+    <p class="lead frag">Not a product tour. A practical view of the standards, guardrails, and AI operating models leading engineering organizations use to scale.</p>
+    <div class="badge-row frag">
+      <span class="badge"><span class="dot"></span>Engineering standards &amp; security</span>
+      <span class="badge"><span class="dot"></span>AI governance</span>
+      <span class="badge"><span class="dot"></span>Cost &amp; FinOps</span>
+      <span class="badge"><span class="dot"></span>Adoption at scale</span>
+    </div>
+  </section>
+
+  <!-- ===== S2: Four areas (icon grid, minimal words) ===== -->
+  <section class="slide">
+    <div class="eyebrow">Today's focus</div>
+    <h2>Four things we'll cover</h2>
+    <div class="ideas">
+      <div class="idea frag"><div class="em">📐</div><div><div class="t">Engineering standards &amp; security</div><div class="s">Standards you inherit, not reinvent</div></div></div>
+      <div class="idea frag"><div class="em">🛡️</div><div><div class="t">AI governance</div><div class="s">Who's accountable when AI writes code</div></div></div>
+      <div class="idea frag"><div class="em">💸</div><div><div class="t">Cost &amp; FinOps</div><div class="s">Understand usage before you optimize it</div></div></div>
+      <div class="idea frag"><div class="em">🚀</div><div><div class="t">Adoption at scale</div><div class="s">Make "good" the easiest path</div></div></div>
+    </div>
+  </section>
+
+  <!-- ===== S3: Why standardize — ONE pendulum ===== -->
+  <section class="slide">
+    <div class="eyebrow">Why now</div>
+    <h2>Scaling a platform is easy.<br>Scaling <span style="color:var(--accent)">consistent practice</span> is the win.</h2>
+    <p class="lead">What leading organizations put in place</p>
+    <div class="ideas" style="max-width:760px;margin-top:18px;">
+      <div class="idea frag"><div class="em" style="color:var(--accent-2)">✅</div><div><div class="t">Shared engineering &amp; security controls</div></div></div>
+      <div class="idea frag"><div class="em" style="color:var(--accent-2)">✅</div><div><div class="t">Consistent delivery workflows</div></div></div>
+      <div class="idea frag"><div class="em" style="color:var(--accent-2)">✅</div><div><div class="t">Governance by design</div></div></div>
+    </div>
+  </section>
+
+  <!-- ===== S4: What good standardizes — paved road metaphor ===== -->
+  <section class="slide">
+    <div class="eyebrow">How leading organizations scale</div>
+    <h2>Standards become the <span style="color:var(--accent-2)">default path</span></h2>
+    <p class="lead">Not a fence around teams — the easiest path, with guardrails built in.</p>
+    <div class="ideas tri">
+      <div class="idea tri frag"><div class="em">📁</div><div class="t">Repositories</div><div class="s">Structure &amp; ownership you inherit on day one</div></div>
+      <div class="idea tri frag"><div class="em">⚙️</div><div class="t">CI/CD</div><div class="s">Build &amp; ship the same way, everywhere</div></div>
+      <div class="idea tri frag"><div class="em">🔀</div><div class="t">Code review</div><div class="s">Every change follows the same review process</div></div>
+      <div class="idea tri frag"><div class="em">🛡️</div><div class="t">Quality gates</div><div class="s">Policy enforced automatically</div></div>
+      <div class="idea tri frag"><div class="em">🔒</div><div class="t">Security</div><div class="s">Security checks built into the workflow</div></div>
+      <div class="idea tri frag"><div class="em">🤖</div><div class="t">AI usage</div><div class="s">Good behaviour as the default</div></div>
+    </div>
+    <div class="gh-strip frag">
+      <span class="gh-lbl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>How it shows up in GitHub</span>
+      <span class="gh-items"><b>Rulesets</b> enforce standards &middot; <b>Actions</b> automate delivery &middot; <b>Code Review</b> validates changes &middot; <b>Copilot</b> accelerates development &middot; <b>Advanced Security</b> reduces risk</span>
+    </div>
+    <div class="gh-pitch frag"><span><b>The more standards rely on manual coordination,</b> the harder they are to <span class="hl">scale.</span></span></div>
+  </section>
+
+  <!-- ===== S5: Repositories — one message ===== -->
+  <section class="slide">
+    <div class="eyebrow">Standard 1 · Repositories</div>
+    <h2>Consistency you <span style="color:var(--accent)">inherit</span>, not re-invent</h2>
+    <div class="inherit">
+      <div class="source frag">
+        <div class="src-lbl">Centralized Configuration</div>
+        <div class="pills">
+          <span class="pill"><span class="p-t">Template repo</span><span class="p-s">Starting point</span></span>
+          <span class="pill"><span class="p-t">CODEOWNERS</span><span class="p-s">Ownership</span></span>
+          <span class="pill"><span class="p-t">Organization ruleset</span><span class="p-s">Governance</span></span>
+        </div>
+      </div>
+      <div class="drop frag">
+        <div class="ar">&#8595;</div>
+        <div class="cap">inherited automatically</div>
+      </div>
+      <div class="repos frag">
+        <span class="repo">Payments</span>
+        <span class="repo">Ordering</span>
+        <span class="repo">Mobile App</span>
+        <span class="repo">API Platform</span>
+        <span class="repo more">+200 more</span>
+      </div>
+    </div>
+    <div class="gh-strip frag">
+      <span class="gh-lbl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>How it shows up in GitHub</span>
+      <span class="gh-items"><b>Template repos</b> scaffold every new project · <b>CODEOWNERS</b> sets clear ownership · <b>Organization rulesets</b> apply standards across every repo automatically</span>
+    </div>
+    <div class="gh-pitch frag" style="max-width:none;"><span><b>Standards that rely on memory don't scale.</b> Encode them once and every repo — new or old — <span class="hl">inherits the same baseline by default.</span></span></div>
+  </section>
+
+  <!-- ===== S6: CI/CD — one message ===== -->
+  <section class="slide">
+    <div class="eyebrow">Standard 2 · CI/CD</div>
+    <h2>Standardize the <span style="color:var(--accent)">path to production</span></h2>
+    <p class="lead">Reusable workflows and stage gates make consistency automatic.</p>
+    <div class="pipe">
+      <div class="pstep frag"><div class="em">🔨</div><div class="t">Build</div><div class="cap">One shared pipeline</div></div>
+      <div class="pstep frag"><div class="em">🧪</div><div class="t">Test</div><div class="cap">Must pass to merge</div></div>
+      <div class="pstep frag"><div class="em">🔒</div><div class="t">Security scan</div><div class="cap">Always runs</div></div>
+      <div class="pstep frag"><div class="em">🚀</div><div class="t">Deploy</div><div class="cap">Needs approval</div></div>
+    </div>
+    <div class="principle frag">
+      <div class="k">Consistent by design</div>
+      <div class="v">Teams shouldn't <i>remember</i> the standards — <span class="g">the platform applies them.</span></div>
+    </div>
+    <div class="gh-strip frag">
+      <span class="gh-lbl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>How it shows up in GitHub</span>
+      <span class="gh-items"><b>Reusable workflows</b> share one pipeline definition · <b>Required checks</b> — including <b>security and quality scanning</b> — block risky merges · <b>Environments</b> &amp; approvals gate every release</span>
+    </div>
+    <div class="gh-pitch frag"><span><b>Copy-paste pipelines drift.</b> Define the standard once and fixes propagate everywhere, instead of being <span class="hl">re-applied repo by repo.</span></span></div>
+  </section>
+
+  <!-- ===== S7: Code review — the single checkpoint ===== -->
+  <section class="slide">
+    <div class="eyebrow">Standard 3 · Code review</div>
+    <h2>The pull request is the <span style="color:var(--accent)">one checkpoint</span></h2>
+    <p class="lead">Every change funnels through it. Make it consistent and it governs quality everywhere.</p>
+    <div class="cgate">
+      <div class="sources frag">
+        <span class="src">Feature</span>
+        <span class="src">Bug fix</span>
+        <span class="src">Refactor</span>
+        <span class="src">Dependency bump</span>
+      </div>
+      <div class="merge-arrows frag">&#8595; &#8595; &#8595; &#8595;</div>
+      <div class="gate-cap frag">no way around it</div>
+      <div class="check frag">
+        <div class="ttl"><span class="em">🔀</span> Pull Request</div>
+        <div class="enf">
+          <span>Review required</span>
+          <span>Right reviewers</span>
+          <span>Checks must pass</span>
+          <span>Security findings surface</span>
+        </div>
+      </div>
+      <div class="drop2 frag"><div class="ar">&#8595;</div></div>
+      <div class="merged frag">Merged to main</div>
+    </div>
+    <div class="gh-strip frag">
+      <span class="gh-lbl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>How it shows up in GitHub</span>
+      <span class="gh-items"><b>Required reviews</b> make the PR mandatory · <b>CODEOWNERS</b> pulls in the right experts · <b>Security findings</b> surface directly in the PR</span>
+    </div>
+    <div class="gh-pitch frag"><span><b>Quality is decided where changes merge.</b> Put review, approvals and security checks at that one gate and <span class="hl">consistency follows.</span></span></div>
+  </section>
+
+  <!-- ===== S8: FinOps — visibility before control ===== -->
+  <section class="slide">
+    <div class="eyebrow">Cost &amp; FinOps</div>
+    <h2>Visibility <span style="color:var(--accent-3)">before</span> control</h2>
+    <p class="lead">You earn the right to set limits by first making spend visible.</p>
+    <div class="seq frag">
+      <div class="step see">
+        <div class="num">FIRST</div>
+        <div class="hd"><span class="em">👁</span><span class="t">See</span></div>
+        <div class="s">Attribution &amp; alerts — know who spends what, by team, as it happens.</div>
+      </div>
+      <div class="arrow"><div class="ico">&#8594;</div><div class="lbl">unlocks</div></div>
+      <div class="step control">
+        <div class="num">THEN</div>
+        <div class="hd"><span class="em">🎚</span><span class="t">Control</span></div>
+        <div class="s">Budgets &amp; limits — caps at user, team, cost-centre &amp; enterprise.</div>
+      </div>
+    </div>
+    <div class="gh-strip frag">
+      <span class="gh-lbl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>How it shows up in GitHub</span>
+      <span class="gh-items"><b>AI Credits</b> give one shared pool · <b>Budgets</b> at user, team &amp; enterprise level · <b>Metrics API</b> shows who spends what</span>
+    </div>
+    <div class="gh-pitch frag"><span><b>You can't govern spend you can't attribute.</b> Cost visible by team, as it happens, turns budgets into <span class="hl">something you can actually manage.</span></span></div>
+  </section>
+
+  <!-- ===== S9: The question (kept big — this was already the model) ===== -->
+  <section class="slide title-slide">
+    <div class="eyebrow">The key question</div>
+    <h1>If AI writes the code <span style="color:var(--accent)">and</span> AI reviews it — who's accountable?</h1>
+    <div class="badge-row frag">
+      <span class="badge"><span class="dot"></span>Can AI approve PRs?</span>
+      <span class="badge"><span class="dot"></span>Is human review still mandatory?</span>
+      <span class="badge"><span class="dot"></span>Where should humans stay in the loop?</span>
+    </div>
+  </section>
+
+  <!-- ===== S10: The answer — accountability hand-off ===== -->
+  <section class="slide">
+    <div class="eyebrow">AI governance · The model</div>
+    <h2>AI assists. <span style="color:var(--accent-2)">Humans stay accountable.</span></h2>
+    <div class="handoff">
+      <div class="ho-card ho-ai frag">
+        <div class="lbl">AI can</div>
+        <div class="v">Write code<br>Provide an initial review<br>Recommend fixes</div>
+      </div>
+      <div class="gate frag"><div class="ico">🔒</div><div class="cap">approval gate</div></div>
+      <div class="ho-card ho-hu frag">
+        <div class="lbl">Humans must</div>
+        <div class="v">Review &amp; approve<br>Merge to main<br>Own the outcome</div>
+      </div>
+    </div>
+    <div class="principle frag">
+      <div class="k">AI governance principle</div>
+      <div class="v">The review process is the same — <span class="g">no matter who wrote the change.</span></div>
+    </div>
+    <div class="gh-strip frag">
+      <span class="gh-lbl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>How it shows up in GitHub</span>
+      <span class="gh-items"><b>Branch protection</b> stops AI from self-approving · <b>Copilot code review</b> gives a first pass — the human still signs off</span>
+    </div>
+    <div class="gh-pitch frag"><span><b>Accountability shouldn't depend on who wrote the code.</b> The same approval gate applies whether a <span class="hl">human or AI</span> proposed the change.</span></div>
+  </section>
+
+  <!-- ===== S11: AI across the SDLC — pipeline ===== -->
+  <section class="slide">
+    <div class="eyebrow">AI in the SDLC · Operating model</div>
+    <h2>AI across the <span style="color:var(--purple)">engineering lifecycle</span></h2>
+    <p class="lead">AI is expanding across the lifecycle. Human accountability stays constant.</p>
+    <div class="pipe">
+      <div class="pstep frag"><div class="em">📋</div><div class="t">Plan</div><div class="cap">Copilot Chat · Issues</div></div>
+      <div class="pstep ai frag"><div class="em">💻</div><div class="t">Code</div><div class="cap">Copilot coding agent</div></div>
+      <div class="pstep frag"><div class="em">🧪</div><div class="t">Test</div><div class="cap">Copilot · Actions</div></div>
+      <div class="pstep ai frag"><div class="em">🔍</div><div class="t">Review</div><div class="cap">Copilot code review</div></div>
+      <div class="pstep frag"><div class="em">🛠️</div><div class="t">Operate</div><div class="cap">Actions · Copilot</div></div>
+    </div>
+    <div class="gh-strip frag">
+      <span class="gh-lbl"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>How it shows up in GitHub</span>
+      <span class="gh-items"><b>Copilot Chat</b> &amp; the <b>coding agent</b> help plan and build · <b>Copilot code review</b> gives a first pass · every step runs on <b>Actions</b> in the same repo</span>
+    </div>
+    <div class="gh-pitch frag"><span><b>AI widens the toolbox; it doesn't move the goalposts.</b> Every step still resolves to a <span class="hl">reviewed, governed change.</span></span></div>
+    <div class="big frag" style="margin-top:34px;font-size:30px;">Every output still lands as a <span class="hl">governed PR.</span></div>
+  </section>
+
+  <!-- ===== S12: Adoption + next steps — close ===== -->
+  <section class="slide">
+    <div class="eyebrow">Scaling the practices</div>
+    <h2>Make "good" the <span style="color:var(--accent-2)">easiest</span> path</h2>
+
+    <div class="ideas" style="grid-template-columns:1fr 1fr;max-width:980px;margin-top:18px;">
+      <div class="idea frag"><div class="em">👥</div><div><div class="t">People</div><div class="s">Champions · Hackathons · Community</div></div></div>
+      <div class="idea frag"><div class="em">🛠️</div><div><div class="t">Platform</div><div class="s">Templates · Standards · Guardrails</div></div></div>
+    </div>
+
+    <div class="big frag" style="margin-top:40px;font-size:30px;max-width:980px;">Adoption scales when standards become the <span class="hl">default way of working.</span></div>
+  </section>
+
+</div>
+
+<div class="nav-hint">Navigate <kbd>←</kbd> <kbd>→</kbd> &nbsp;·&nbsp; <kbd>F</kbd> fullscreen</div>
+<div class="controls">
+  <button id="prev" title="Previous (←)">‹</button>
+  <button id="next" title="Next (→)">›</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let idx = 0;
+  const total = slides.length;
+  document.getElementById('total').textContent = total;
+
+  function show(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.getElementById('cur').textContent = idx + 1;
+    document.getElementById('progress').style.width = ((idx + 1) / total * 100) + '%';
+  }
+
+  function next() { show(idx + 1); }
+  function prev() { show(idx - 1); }
+
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('prev').addEventListener('click', prev);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') { show(0); }
+    else if (e.key === 'End') { show(total - 1); }
+    else if (e.key.toLowerCase() === 'n') { document.body.classList.toggle('notes'); }
+    else if (e.key.toLowerCase() === 'f') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  show(0);
+</script>
+</body>
+</html>
