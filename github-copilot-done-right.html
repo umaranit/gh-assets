@@ -1,0 +1,2391 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GitHub &amp; Copilot, Done Right</title><style>
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --panel: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-2: #3fb950;
+    --accent-3: #d29922;
+    --danger: #f85149;
+    --purple: #bc8cff;
+    --radius: 14px;
+    --shadow: 0 18px 50px rgba(0,0,0,.45);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- Deck / slide framing ---------- */
+  .deck { position: fixed; inset: 0; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 60px 80px 76px;
+    animation: fade .45s ease;
+  }
+  .slide.active { display: flex; }
+
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 26px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1 { font-size: 52px; line-height: 1.08; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: 36px; line-height: 1.12; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .lead { font-size: 19px; color: var(--muted); max-width: 70ch; margin-top: 12px; line-height: 1.5; }
+
+  /* ---------- Title slide ---------- */
+  .title-slide { justify-content: center; }
+  .title-slide h1 { font-size: 60px; max-width: 22ch; }
+  .badge-row { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+  .badge {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: 15px;
+    color: var(--text);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); }
+
+  /* ---------- Content layouts ---------- */
+  .body { margin-top: 26px; flex: 1; min-height: 0; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: stretch; }
+
+  .card {
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 {
+    font-size: 21px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .card .ico {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    font-size: 18px; background: rgba(88,166,255,.14); border: 1px solid rgba(88,166,255,.3);
+  }
+  ul.clean { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.clean li { font-size: 17px; line-height: 1.45; padding-left: 26px; position: relative; color: var(--text); }
+  ul.clean li::before {
+    content: "›"; position: absolute; left: 6px; top: -1px; color: var(--accent); font-weight: 700; font-size: 20px;
+  }
+  ul.clean li b { color: var(--text); }
+
+  /* ---------- Check / cross lists ---------- */
+  ul.check { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.check li { font-size: 16.5px; line-height: 1.4; padding-left: 30px; position: relative; }
+  ul.check li::before {
+    content: "✓"; position: absolute; left: 4px; top: 0; color: var(--accent-2); font-weight: 700;
+    width: 20px; height: 20px; display: grid; place-items: center;
+  }
+  ul.cross { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.cross li { font-size: 16.5px; line-height: 1.4; padding-left: 30px; position: relative; color: var(--text); }
+  ul.cross li::before {
+    content: "✕"; position: absolute; left: 4px; top: 0; color: var(--danger); font-weight: 700;
+    width: 20px; height: 20px; display: grid; place-items: center;
+  }
+
+  /* ---------- Layer stack (vertical) ---------- */
+  .stack { display: flex; flex-direction: column; gap: 14px; position: relative; }
+  .layer {
+    display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 22px;
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 26px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .layer::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
+  .layer .l-num {
+    font-size: 34px; font-weight: 800; line-height: 1; color: var(--accent); opacity: .9;
+  }
+  .layer .l-t { font-size: 20px; font-weight: 700; color: var(--text); }
+  .layer .l-f { font-size: 14px; color: var(--muted); margin-top: 4px; font-family: "Cascadia Code","Consolas",monospace; }
+  .layer .l-job {
+    font-size: 15px; color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 999px; padding: 7px 16px; white-space: nowrap;
+  }
+
+  /* ---------- Code block ---------- */
+  .codeblock {
+    background: #0a0d12; border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 22px; font-family: "Cascadia Code","Consolas",monospace;
+    font-size: 14.5px; line-height: 1.6; color: var(--text); overflow: auto; white-space: pre;
+  }
+  .codeblock .fm { color: var(--muted); }
+  .codeblock .key { color: var(--accent); }
+  .codeblock .str { color: var(--accent-2); }
+  .codeblock .cmt { color: var(--muted); font-style: italic; }
+
+  code {
+    font-family: "Cascadia Code", "Consolas", monospace;
+    background: rgba(110,118,129,.18); border: 1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; font-size: .88em; color: var(--text);
+  }
+
+  /* ---------- Takeaway band ---------- */
+  .copilot-band {
+    margin-top: 20px; border: 1px dashed rgba(188,140,255,.5); border-radius: 12px;
+    padding: 16px 22px; background: rgba(188,140,255,.05); display: flex; align-items: center; gap: 14px;
+    font-size: 17px;
+  }
+  .copilot-band .tag {
+    background: var(--purple); color: #1a1024; font-weight: 700; font-size: 13px;
+    padding: 4px 12px; border-radius: 999px; letter-spacing: .03em; white-space: nowrap;
+  }
+  .takeaway {
+    margin-top: auto; border-left: 3px solid var(--accent-3);
+    background: rgba(210,153,34,.07); padding: 14px 20px; border-radius: 0 10px 10px 0;
+    font-size: 16.5px; color: var(--text);
+  }
+  .takeaway b { color: var(--accent-3); }
+
+  .sub-lbl {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+    margin: 4px 0 12px; font-weight: 600;
+  }
+
+  /* ---------- Decision table ---------- */
+  .decide { width: 100%; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .decide .drow {
+    display: grid; grid-template-columns: 2.2fr 1fr;
+    align-items: center; gap: 0 18px; padding: 13px 22px;
+    border-bottom: 1px solid var(--border); font-size: 16.5px;
+  }
+  .decide .drow:last-child { border-bottom: none; }
+  .decide .dhead {
+    background: rgba(110,118,129,.08); font-size: 12.5px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); font-weight: 600;
+  }
+  .decide .act { color: var(--text); }
+  .decide .reach { color: var(--accent); font-weight: 700; }
+
+  /* ---------- Mistakes grid ---------- */
+  .mistakes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .mistake {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-left: 3px solid var(--danger); border-radius: 12px; padding: 16px 20px;
+  }
+  .mistake .mh { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; gap: 10px; align-items: baseline; }
+  .mistake .mh .mn { color: var(--danger); font-weight: 800; }
+  .mistake .md { font-size: 15px; color: var(--muted); line-height: 1.45; }
+  .mistake .md b { color: var(--accent-2); }
+
+  /* ============================================================ */
+  /* ===============  Interactivity (hover only)  =============== */
+  /* ============================================================ */
+  /* No entrance / build animations. Content is simply present so it
+     never competes with the recorded demos. Only hover affordances. */
+  @media (prefers-reduced-motion: reduce) { .slide { animation: none; } }
+
+  .card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+  .card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 22px 56px rgba(0,0,0,.5); }
+  .layer { transition: transform .2s ease, border-color .2s ease; }
+  .layer:hover { transform: translateX(6px); border-color: var(--accent); }
+
+  .decide .drow:not(.dhead) { transition: background .2s ease; }
+  .decide .drow:not(.dhead):hover { background: rgba(88,166,255,.09); }
+  .mistake { transition: transform .2s ease, border-left-color .2s ease; }
+  .mistake:hover { transform: translateY(-4px); border-left-color: var(--accent-2); }
+
+  /* ---------- Demo slot: where the recording plays ---------- */
+  .demo-strip {
+    border: 1px solid var(--accent); border-radius: 12px;
+    background: linear-gradient(180deg, rgba(88,166,255,.12), rgba(88,166,255,.04));
+    padding: 16px 22px; display: flex; align-items: center; gap: 16px; font-size: 17px;
+  }
+  .demo-strip .play {
+    width: 42px; height: 42px; border-radius: 10px; flex: none;
+    display: grid; place-items: center; font-size: 18px;
+    background: var(--accent); color: #06121f;
+  }
+  .demo-strip .dlabel {
+    font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    font-size: 12.5px; color: var(--accent);
+  }
+  .demo-strip .dname { color: var(--text); }
+
+  /* ---------- Setup / Payoff cards ---------- */
+  .sp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 20px; }
+  .sp-card {
+    border-radius: var(--radius); padding: 22px 26px; border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel)); box-shadow: var(--shadow);
+  }
+  .sp-card .sp-h {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .sp-card.setup  { border-top: 3px solid var(--accent); }
+  .sp-card.payoff { border-top: 3px solid var(--accent-2); }
+  .sp-card.setup  .sp-h { color: var(--accent); }
+  .sp-card.payoff .sp-h { color: var(--accent-2); }
+  .sp-card > p { font-size: 18px; line-height: 1.5; color: var(--text); }
+  .sp-card .watch {
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+    font-size: 15.5px; line-height: 1.45; color: var(--muted);
+  }
+  .sp-card .watch b { color: var(--accent-3); }
+  /* result output shown inside setup/payoff cards */
+  .sp-card .out {
+    font-family: "Cascadia Code","Consolas",monospace; font-size: 15px; line-height: 1.7;
+    color: var(--muted); white-space: pre-wrap; margin-bottom: 14px;
+  }
+  .sp-card .out .del { color: var(--danger); }
+  .sp-card .out .add { color: var(--accent-2); }
+  .sp-card .verdict {
+    margin: 0; font-size: 16.5px; font-weight: 600;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .sp-card .verdict .gl { font-weight: 800; }
+  .sp-card .verdict.bad { color: var(--danger); }
+  .sp-card .verdict.ok  { color: var(--accent-2); }
+
+  /* ---------- Escalation strip (layer slides 3-7) ---------- */
+  .stakes { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+  .stakes .chip {
+    display: inline-flex; align-items: baseline; gap: 8px;
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-radius: 999px; padding: 7px 16px; font-size: 14.5px; color: var(--text);
+  }
+  .stakes .chip .k {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--muted); font-weight: 700;
+  }
+  .stakes .chip.risk { border-color: rgba(210,153,34,.45); background: rgba(210,153,34,.07); }
+  .stakes .chip.risk .v { color: var(--accent-3); font-weight: 600; }
+  .stakes .chip { transition: border-color .2s ease, transform .2s ease; }
+  .stakes .chip:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+  /* ---------- Prominent file badge (layer slides) ---------- */
+  .filename {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 12px;
+    margin: 14px 0 2px; padding: 9px 16px;
+    background: rgba(88,166,255,.1);
+    border: 1px solid rgba(88,166,255,.45);
+    border-left: 4px solid var(--accent);
+    border-radius: 9px;
+  }
+  .filename .fl {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .11em;
+    font-weight: 700; color: var(--accent);
+  }
+  .filename code {
+    background: none; border: none; padding: 0;
+    font-size: 18px; font-weight: 600; color: var(--text);
+  }
+
+  /* ---------- Flow (slide 3: how the file works) ---------- */
+  .flow {
+    display: flex; align-items: stretch; justify-content: center; gap: 14px;
+  }
+  .flow .step {
+    flex: 1 1 0; max-width: 360px;
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border); border-radius: 16px; padding: 26px 24px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
+    box-shadow: var(--shadow);
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .flow .step:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .flow .step.hero { border-color: rgba(188,140,255,.55); box-shadow: 0 0 0 1px rgba(188,140,255,.22), var(--shadow); }
+  .flow .step .ico { font-size: 40px; line-height: 1; }
+  .flow .step h3 { font-size: 22px; font-weight: 700; }
+  .flow .step.hero h3 { color: var(--purple); }
+  .flow .step p { font-size: 16px; line-height: 1.5; color: var(--muted); }
+  .flow .arrow { align-self: center; font-size: 30px; color: var(--muted); flex: 0 0 auto; }
+  .flow .mini {
+    width: 100%; text-align: left; border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden; background: #0a0d12; margin-top: 4px;
+  }
+  .flow .mini .bar {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border);
+  }
+  .flow .mini .bar .dot { width: 9px; height: 9px; border-radius: 50%; background: #3a4150; }
+  .flow .mini .bar .fn { margin-left: 4px; font-family: "Cascadia Code","Consolas",monospace; font-size: 12.5px; color: var(--muted); }
+  .flow .mini .code {
+    padding: 13px 15px; font-family: "Cascadia Code","Consolas",monospace;
+    font-size: 14px; line-height: 1.8; color: var(--text); white-space: pre-wrap;
+  }
+  .flow .mini .code .c { color: var(--muted); font-style: italic; }
+  .flow .mini .code b { color: var(--purple); font-weight: 600; }
+  .result {
+    margin-top: 24px;
+    border: 1px dashed rgba(88,166,255,.5); border-radius: 14px;
+    background: rgba(88,166,255,.06); padding: 16px 26px;
+    font-size: 18px; color: var(--text);
+  }
+  .result b { color: var(--accent); }
+
+  /* ---------- Lifecycle checklist ---------- */
+  .life { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .life .item {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-2); border-radius: 12px; padding: 16px 20px;
+    transition: transform .2s ease, border-left-color .2s ease;
+  }
+  .life .item:hover { transform: translateY(-4px); border-left-color: var(--accent); }
+  .life .item .lh { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; gap: 10px; align-items: baseline; }
+  .life .item .lh .ck { color: var(--accent-2); font-weight: 800; }
+  .life .item .ld { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+
+  /* Speaker notes never render on the audience slide */
+  .note { display: none !important; }
+
+  /* ---------- Footer / chrome ---------- */
+  .chrome {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 54px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; font-size: 13px; color: var(--muted);
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.35));
+    pointer-events: none;
+  }
+  .progress {
+    position: fixed; top: 0; left: 0; height: 3px; background: var(--accent);
+    transition: width .35s ease; z-index: 10;
+  }
+  .nav-hint { display: flex; gap: 6px; align-items: center; }
+  kbd {
+    background: var(--bg-soft); border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 5px; padding: 2px 7px; font-size: 12px; color: var(--text); font-family: inherit;
+  }
+  .controls { position: fixed; bottom: 14px; right: 24px; display: flex; gap: 8px; z-index: 11; }
+  .controls button {
+    width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--bg-soft); color: var(--text); font-size: 17px; cursor: pointer;
+    display: grid; place-items: center; transition: .15s;
+  }
+  .controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .pagenum { position: fixed; top: 22px; right: 30px; font-size: 14px; color: var(--muted); z-index: 11; }
+
+
+  :root{--bg:#0d1117;--soft:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--gold:#d29922;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;padding:22px 26px;gap:18px;}
+  .top{display:flex;justify-content:space-between;align-items:center;}
+  .top .pos{font-size:15px;color:var(--muted);}
+  .top .timer{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
+  .grid{flex:1;display:grid;grid-template-columns:1.3fr 1fr;gap:18px;min-height:0;}
+  .panel{background:var(--soft);border:1px solid var(--border);border-radius:12px;padding:20px 22px;overflow:auto;}
+  .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:12px;}
+  .cur-eyebrow{color:var(--accent);font-size:14px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:8px;}
+  .cur-title{font-size:30px;font-weight:700;line-height:1.15;margin-bottom:18px;}
+  .note{font-size:19px;line-height:1.55;color:var(--text);}
+  .note b{color:var(--gold);}
+  .next-title{font-size:20px;font-weight:600;color:var(--muted);line-height:1.25;}
+  .next-note{font-size:15px;color:var(--muted);margin-top:12px;line-height:1.45;border-top:1px solid var(--border);padding-top:12px;}
+  .controls{display:flex;gap:10px;align-items:center;}
+  button{background:var(--soft);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 16px;font-size:15px;cursor:pointer;font-family:inherit;}
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  .hint{font-size:12px;color:var(--muted);margin-top:auto;padding-top:10px;}
+  kbd{background:var(--bg);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:11px;}
+
+
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --panel: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-2: #3fb950;
+    --accent-3: #d29922;
+    --danger: #f85149;
+    --purple: #bc8cff;
+    --radius: 14px;
+    --shadow: 0 18px 50px rgba(0,0,0,.45);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- Deck / slide framing ---------- */
+  .deck { position: fixed; inset: 0; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 60px 80px 76px;
+    animation: fade .45s ease;
+  }
+  .slide.active { display: flex; }
+
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 26px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1 { font-size: 52px; line-height: 1.08; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: 36px; line-height: 1.12; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .lead { font-size: 19px; color: var(--muted); max-width: 72ch; margin-top: 12px; line-height: 1.5; }
+  .lead b { color: var(--text); }
+
+  /* ---------- Title slide ---------- */
+  .title-slide { justify-content: center; }
+  .title-slide h1 { font-size: 60px; max-width: 24ch; }
+  .badge-row { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+  .badge {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: 15px;
+    color: var(--text);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); }
+
+  /* ---------- Content layouts ---------- */
+  .body { margin-top: 26px; flex: 1; min-height: 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: stretch; }
+
+  .card {
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 { font-size: 21px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .card .ico {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    font-size: 18px; background: rgba(88,166,255,.14); border: 1px solid rgba(88,166,255,.3);
+  }
+  ul.clean { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.clean li { font-size: 17px; line-height: 1.45; padding-left: 26px; position: relative; color: var(--text); }
+  ul.clean li::before { content: "›"; position: absolute; left: 6px; top: -1px; color: var(--accent); font-weight: 700; font-size: 20px; }
+  ul.clean li b { color: var(--text); }
+
+  /* ---------- Check / cross lists ---------- */
+  ul.check { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  ul.check li { font-size: 16.5px; line-height: 1.45; padding-left: 32px; position: relative; }
+  ul.check li::before {
+    content: "✓"; position: absolute; left: 4px; top: 0; color: var(--accent-2); font-weight: 700;
+    width: 20px; height: 20px; display: grid; place-items: center;
+  }
+  ul.check li b { color: var(--text); }
+  ul.cross { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  ul.cross li { font-size: 16.5px; line-height: 1.45; padding-left: 32px; position: relative; color: var(--text); }
+  ul.cross li::before {
+    content: "✕"; position: absolute; left: 4px; top: 0; color: var(--danger); font-weight: 700;
+    width: 20px; height: 20px; display: grid; place-items: center;
+  }
+
+  /* ---------- Mapping stack (vertical) ---------- */
+  .stack { display: flex; flex-direction: column; gap: 13px; position: relative; }
+  .maprow {
+    display: grid; grid-template-columns: 1fr 40px 1fr; align-items: center; gap: 18px;
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 24px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .maprow:hover { transform: translateX(6px); border-color: var(--accent); }
+  .maprow::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
+  .maprow .ado { display: flex; flex-direction: column; gap: 3px; }
+  .maprow .ado .k { font-size: 12px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); font-weight: 700; }
+  .maprow .ado .v { font-size: 19px; font-weight: 700; color: var(--text); }
+  .maprow .to { text-align: center; color: var(--accent); font-size: 24px; font-weight: 700; }
+  .maprow .gh { display: flex; flex-direction: column; gap: 3px; }
+  .maprow .gh .k { font-size: 12px; text-transform: uppercase; letter-spacing: .09em; color: var(--accent-2); font-weight: 700; }
+  .maprow .gh .v { font-size: 19px; font-weight: 700; color: var(--text); }
+  .maprow .gh .v code { font-family: "Cascadia Code","Consolas",monospace; }
+
+  /* ---------- Flow: Familiar → Equivalent → Upgrade ---------- */
+  .flow { display: flex; align-items: stretch; justify-content: center; gap: 14px; }
+  .flow .step {
+    flex: 1 1 0; max-width: 360px;
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border); border-radius: 16px; padding: 26px 24px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
+    box-shadow: var(--shadow); transition: transform .2s ease, border-color .2s ease;
+  }
+  .flow .step:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .flow .step.hero { border-color: rgba(63,185,80,.55); box-shadow: 0 0 0 1px rgba(63,185,80,.22), var(--shadow); }
+  .flow .step.up { border-color: rgba(188,140,255,.55); box-shadow: 0 0 0 1px rgba(188,140,255,.22), var(--shadow); }
+  .flow .step .ico { font-size: 40px; line-height: 1; }
+  .flow .step .tag-s { font-size: 11px; text-transform: uppercase; letter-spacing: .11em; font-weight: 700; color: var(--muted); }
+  .flow .step.hero .tag-s { color: var(--accent-2); }
+  .flow .step.up .tag-s { color: var(--purple); }
+  .flow .step h3 { font-size: 21px; font-weight: 700; }
+  .flow .step.hero h3 { color: var(--accent-2); }
+  .flow .step.up h3 { color: var(--purple); }
+  .flow .step p { font-size: 15.5px; line-height: 1.5; color: var(--muted); }
+  .flow .step p b { color: var(--text); }
+  .flow .arrow { align-self: center; font-size: 30px; color: var(--muted); flex: 0 0 auto; }
+
+  .result {
+    margin-top: 22px;
+    border: 1px dashed rgba(88,166,255,.5); border-radius: 14px;
+    background: rgba(88,166,255,.06); padding: 16px 26px;
+    font-size: 18px; color: var(--text);
+  }
+  .result b { color: var(--accent); }
+
+  code {
+    font-family: "Cascadia Code", "Consolas", monospace;
+    background: rgba(110,118,129,.18); border: 1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; font-size: .88em; color: var(--text);
+  }
+
+  /* ---------- Decision / cheat-sheet table ---------- */
+  .decide { width: 100%; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .decide .drow {
+    display: grid; grid-template-columns: 1.1fr 1.1fr 1.4fr;
+    align-items: center; gap: 0 18px; padding: 12px 22px;
+    border-bottom: 1px solid var(--border); font-size: 16px;
+  }
+  .decide .drow:last-child { border-bottom: none; }
+  .decide .dhead {
+    background: rgba(110,118,129,.08); font-size: 12.5px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); font-weight: 600;
+  }
+  .decide .act { color: var(--muted); }
+  .decide .reach { color: var(--accent); font-weight: 700; }
+  .decide .up { color: var(--text); font-size: 14.5px; }
+  .decide .drow:not(.dhead) { transition: background .2s ease; }
+  .decide .drow:not(.dhead):hover { background: rgba(88,166,255,.09); }
+
+  /* ---------- Takeaway band ---------- */
+  .takeaway {
+    margin-top: auto; border-left: 3px solid var(--accent-3);
+    background: rgba(210,153,34,.07); padding: 14px 20px; border-radius: 0 10px 10px 0;
+    font-size: 16.5px; color: var(--text);
+  }
+  .takeaway b { color: var(--accent-3); }
+  .copilot-band {
+    margin-top: 20px; border: 1px dashed rgba(188,140,255,.5); border-radius: 12px;
+    padding: 16px 22px; background: rgba(188,140,255,.05); display: flex; align-items: center; gap: 14px;
+    font-size: 17px;
+  }
+  .copilot-band .tag {
+    background: var(--purple); color: #1a1024; font-weight: 700; font-size: 13px;
+    padding: 4px 12px; border-radius: 999px; letter-spacing: .03em; white-space: nowrap;
+  }
+
+  /* ---------- Worries grid ---------- */
+  .worries { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .worry {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-3); border-radius: 12px; padding: 16px 20px;
+    transition: transform .2s ease, border-left-color .2s ease;
+  }
+  .worry:hover { transform: translateY(-4px); border-left-color: var(--accent-2); }
+  .worry .wq { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; gap: 10px; align-items: baseline; }
+  .worry .wq .qm { color: var(--accent-3); font-weight: 800; }
+  .worry .wa { font-size: 14.5px; color: var(--muted); line-height: 1.5; }
+  .worry .wa b { color: var(--accent-2); }
+
+  /* ---------- Upgrades grid ---------- */
+  .ups { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .up-card {
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border); border-top: 3px solid var(--purple);
+    border-radius: 12px; padding: 18px 22px; transition: transform .2s ease, border-color .2s ease;
+  }
+  .up-card:hover { transform: translateY(-4px); border-color: var(--purple); }
+  .up-card .uh { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; gap: 10px; align-items: center; }
+  .up-card .uh .ui { font-size: 22px; }
+  .up-card .ud { font-size: 15px; color: var(--muted); line-height: 1.5; }
+  .up-card .ud b { color: var(--purple); }
+
+  /* ---------- First-week lifecycle ---------- */
+  .life { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .life .item {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-2); border-radius: 12px; padding: 16px 20px;
+    transition: transform .2s ease, border-left-color .2s ease;
+  }
+  .life .item:hover { transform: translateY(-4px); border-left-color: var(--accent); }
+  .life .item .lh { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; gap: 10px; align-items: baseline; }
+  .life .item .lh .ck { color: var(--accent-2); font-weight: 800; }
+  .life .item .ld { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+  .life .item .ld b { color: var(--accent); }
+
+  @media (prefers-reduced-motion: reduce) { .slide { animation: none; } }
+  .card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+  .card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 22px 56px rgba(0,0,0,.5); }
+
+  /* Speaker notes never render on the audience slide */
+  .note { display: none !important; }
+
+  /* ---------- Footer / chrome ---------- */
+  .chrome {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 54px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; font-size: 13px; color: var(--muted);
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.35));
+    pointer-events: none;
+  }
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); transition: width .35s ease; z-index: 10; }
+  .nav-hint { display: flex; gap: 6px; align-items: center; }
+  kbd {
+    background: var(--bg-soft); border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 5px; padding: 2px 7px; font-size: 12px; color: var(--text); font-family: inherit;
+  }
+  .controls { position: fixed; bottom: 14px; right: 24px; display: flex; gap: 8px; z-index: 11; }
+  .controls button {
+    width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--bg-soft); color: var(--text); font-size: 17px; cursor: pointer;
+    display: grid; place-items: center; transition: .15s;
+  }
+  .controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .pagenum { position: fixed; top: 22px; right: 30px; font-size: 14px; color: var(--muted); z-index: 11; }
+
+
+  :root{--bg:#0d1117;--soft:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--gold:#d29922;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;padding:22px 26px;gap:18px;}
+  .top{display:flex;justify-content:space-between;align-items:center;}
+  .top .pos{font-size:15px;color:var(--muted);}
+  .top .timer{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
+  .grid{flex:1;display:grid;grid-template-columns:1.3fr 1fr;gap:18px;min-height:0;}
+  .panel{background:var(--soft);border:1px solid var(--border);border-radius:12px;padding:20px 22px;overflow:auto;}
+  .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:12px;}
+  .cur-eyebrow{color:var(--accent);font-size:14px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:8px;}
+  .cur-title{font-size:30px;font-weight:700;line-height:1.15;margin-bottom:18px;}
+  .note{font-size:19px;line-height:1.55;color:var(--text);}
+  .note b{color:var(--gold);}
+  .next-title{font-size:20px;font-weight:600;color:var(--muted);line-height:1.25;}
+  .next-note{font-size:15px;color:var(--muted);margin-top:12px;line-height:1.45;border-top:1px solid var(--border);padding-top:12px;}
+  .controls{display:flex;gap:10px;align-items:center;}
+  button{background:var(--soft);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 16px;font-size:15px;cursor:pointer;font-family:inherit;}
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  .hint{font-size:12px;color:var(--muted);margin-top:auto;padding-top:10px;}
+  kbd{background:var(--bg);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:11px;}
+
+
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --panel: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-2: #3fb950;
+    --accent-3: #d29922;
+    --danger: #f85149;
+    --purple: #bc8cff;
+    --radius: 14px;
+    --shadow: 0 18px 50px rgba(0,0,0,.45);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- Deck / slide framing ---------- */
+  .deck { position: fixed; inset: 0; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 60px 80px 76px;
+    animation: fade .45s ease;
+  }
+  .slide.active { display: flex; }
+
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 26px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1 { font-size: 52px; line-height: 1.08; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: 36px; line-height: 1.12; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .lead { font-size: 19px; color: var(--muted); max-width: 70ch; margin-top: 12px; line-height: 1.5; }
+
+  /* ---------- Title slide ---------- */
+  .title-slide { justify-content: center; }
+  .title-slide h1 { font-size: 60px; max-width: 22ch; }
+  .badge-row { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+  .badge {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: 15px;
+    color: var(--text);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); }
+
+  /* ---------- Content layouts ---------- */
+  .body { margin-top: 26px; flex: 1; min-height: 0; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: stretch; }
+
+  .card {
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 {
+    font-size: 21px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .card .ico {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    font-size: 18px; background: rgba(88,166,255,.14); border: 1px solid rgba(88,166,255,.3);
+  }
+  ul.clean { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.clean li { font-size: 17px; line-height: 1.45; padding-left: 26px; position: relative; color: var(--text); }
+  ul.clean li::before {
+    content: "›"; position: absolute; left: 6px; top: -1px; color: var(--accent); font-weight: 700; font-size: 20px;
+  }
+  ul.clean li b { color: var(--text); }
+
+  /* ---------- Check / cross lists ---------- */
+  ul.check { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.check li { font-size: 16.5px; line-height: 1.4; padding-left: 30px; position: relative; }
+  ul.check li::before {
+    content: "✓"; position: absolute; left: 4px; top: 0; color: var(--accent-2); font-weight: 700;
+    width: 20px; height: 20px; display: grid; place-items: center;
+  }
+  ul.cross { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.cross li { font-size: 16.5px; line-height: 1.4; padding-left: 30px; position: relative; color: var(--text); }
+  ul.cross li::before {
+    content: "✕"; position: absolute; left: 4px; top: 0; color: var(--danger); font-weight: 700;
+    width: 20px; height: 20px; display: grid; place-items: center;
+  }
+
+  /* ---------- Layer stack (vertical) ---------- */
+  .stack { display: flex; flex-direction: column; gap: 14px; position: relative; }
+  .layer {
+    display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 22px;
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 26px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .layer::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
+  .layer.human::before { background: var(--accent-2); }
+  .layer.gate::before  { background: var(--accent-3); }
+  .layer .l-num {
+    font-size: 30px; font-weight: 800; line-height: 1; color: var(--accent); opacity: .9;
+  }
+  .layer.human .l-num { color: var(--accent-2); }
+  .layer.gate  .l-num { color: var(--accent-3); }
+  .layer .l-t { font-size: 20px; font-weight: 700; color: var(--text); }
+  .layer .l-f { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .layer .l-job {
+    font-size: 15px; color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 999px; padding: 7px 16px; white-space: nowrap;
+  }
+  .layer.gate {
+    border-color: rgba(210,153,34,.55);
+    box-shadow: 0 0 0 1px rgba(210,153,34,.3), var(--shadow);
+    background: linear-gradient(180deg, rgba(210,153,34,.10), var(--panel));
+  }
+  .layer.gate .l-t { font-size: 23px; }
+  .layer.gate .l-job { background: var(--accent-3); color: #1a1205; border-color: transparent; font-weight: 800; }
+
+  .pipe { display: flex; align-items: stretch; justify-content: center; gap: 12px; }
+  .pnode {
+    flex: 1 1 0; max-width: 300px;
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border); border-radius: 16px; padding: 24px 22px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+    box-shadow: var(--shadow);
+  }
+  .pnode .pico { font-size: 38px; line-height: 1; }
+  .pnode .pt { font-size: 19px; font-weight: 700; color: var(--text); }
+  .pnode .ps { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+  .pnode .ptag {
+    font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .pnode.new { border-color: rgba(88,166,255,.6); box-shadow: 0 0 0 1px rgba(88,166,255,.3), var(--shadow); }
+  .pnode.new .pt { color: var(--accent); }
+  .pnode.new .ptag { background: var(--accent); color: #06121f; }
+  .pnode.keep { border-color: rgba(63,185,80,.45); }
+  .pnode.keep .pt { color: var(--accent-2); }
+  .pnode.keep .ptag { background: rgba(63,185,80,.16); color: var(--accent-2); border: 1px solid rgba(63,185,80,.4); }
+  .parrow { align-self: center; font-size: 28px; color: var(--muted); flex: 0 0 auto; }
+  .pnode { transition: transform .2s ease, border-color .2s ease; }
+  .pnode:hover { transform: translateY(-4px); }
+
+  code {
+    font-family: "Cascadia Code", "Consolas", monospace;
+    background: rgba(110,118,129,.18); border: 1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; font-size: .88em; color: var(--text);
+  }
+
+  /* ---------- Takeaway band ---------- */
+  .copilot-band {
+    margin-top: 20px; border: 1px dashed rgba(188,140,255,.5); border-radius: 12px;
+    padding: 16px 22px; background: rgba(188,140,255,.05); display: flex; align-items: center; gap: 14px;
+    font-size: 17px;
+  }
+  .copilot-band .tag {
+    background: var(--purple); color: #1a1024; font-weight: 700; font-size: 13px;
+    padding: 4px 12px; border-radius: 999px; letter-spacing: .03em; white-space: nowrap;
+  }
+  .takeaway {
+    margin-top: auto; border-left: 3px solid var(--accent-3);
+    background: rgba(210,153,34,.07); padding: 14px 20px; border-radius: 0 10px 10px 0;
+    font-size: 16.5px; color: var(--text);
+  }
+  .takeaway b { color: var(--accent-3); }
+
+  /* ---------- Demo slot: where the recording plays ---------- */
+  .demo-strip {
+    border: 1px solid var(--accent); border-radius: 12px;
+    background: linear-gradient(180deg, rgba(88,166,255,.12), rgba(88,166,255,.04));
+    padding: 16px 22px; display: flex; align-items: center; gap: 16px; font-size: 17px;
+  }
+  .demo-strip .play {
+    width: 42px; height: 42px; border-radius: 10px; flex: none;
+    display: grid; place-items: center; font-size: 18px;
+    background: var(--accent); color: #06121f;
+  }
+  .demo-strip .dlabel {
+    font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    font-size: 12.5px; color: var(--accent);
+  }
+  .demo-strip .dname { color: var(--text); }
+
+  /* ---------- Setup / Payoff cards ---------- */
+  .sp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 20px; }
+  .sp-card {
+    border-radius: var(--radius); padding: 22px 26px; border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel)); box-shadow: var(--shadow);
+  }
+  .sp-card .sp-h {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .sp-card.setup  { border-top: 3px solid var(--accent); }
+  .sp-card.payoff { border-top: 3px solid var(--accent-2); }
+  .sp-card.setup  .sp-h { color: var(--accent); }
+  .sp-card.payoff .sp-h { color: var(--accent-2); }
+  .sp-card > p { font-size: 18px; line-height: 1.5; color: var(--text); }
+  .sp-card .watch {
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+    font-size: 15.5px; line-height: 1.45; color: var(--muted);
+  }
+  .sp-card .watch b { color: var(--accent-3); }
+
+  /* ---------- Concrete review mock (slide 4) ---------- */
+  .review {
+    margin-top: 20px; max-width: 760px; width: 100%; align-self: center;
+    border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+    background: var(--panel); box-shadow: var(--shadow);
+    font-family: "Cascadia Code", "Consolas", monospace;
+  }
+  .rv-file {
+    display: flex; align-items: center; gap: 9px; padding: 11px 18px;
+    background: var(--bg-soft); border-bottom: 1px solid var(--border);
+    font-size: 13.5px; color: var(--muted);
+  }
+  .rv-file .rv-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-3); flex: none; }
+  .rv-diff { font-size: 15px; line-height: 1.7; }
+  .rv-diff .dl { display: flex; gap: 14px; padding: 1px 18px; white-space: pre; }
+  .rv-diff .ln { color: #6e7681; width: 22px; text-align: right; flex: none; user-select: none; }
+  .rv-diff .ctx { color: var(--text); }
+  .rv-diff .del { background: rgba(248,81,73,.14); color: #ffb3ae; }
+  .rv-diff .add { background: rgba(63,185,80,.14); color: #8ce39a; }
+  .rv-comment { border-top: 1px solid var(--border); padding: 16px 18px; font-family: var(--font); }
+  .rv-who { display: flex; align-items: center; gap: 9px; font-size: 14.5px; font-weight: 700; color: var(--text); }
+  .rv-who .rv-bot { font-size: 18px; }
+  .rv-who .rv-tag {
+    font-family: var(--font); font-size: 12px; font-weight: 700; color: #ffb3ae;
+    background: rgba(248,81,73,.14); border: 1px solid rgba(248,81,73,.35);
+    padding: 2px 10px; border-radius: 999px; letter-spacing: .02em;
+  }
+  .rv-comment > p { margin: 9px 0 0; font-size: 16px; line-height: 1.5; color: var(--text); }
+  .rv-suggest {
+    margin-top: 13px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    background: var(--bg);
+  }
+  .rv-suggest .rv-sg-h {
+    font-family: var(--font); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--accent-2); padding: 8px 14px; background: rgba(63,185,80,.08); border-bottom: 1px solid var(--border);
+  }
+  .rv-suggest code {
+    display: block; background: none; border: none; border-radius: 0;
+    padding: 11px 14px; font-size: 15px; color: #8ce39a;
+  }
+  .rv-btn {
+    margin-top: 13px; font-family: var(--font); font-size: 14.5px; font-weight: 700;
+    background: var(--accent-2); color: #052e10; border: none; border-radius: 8px;
+    padding: 9px 18px; cursor: pointer;
+  }
+
+  /* ---------- Pain vs relief story (slide 4) ---------- */
+  .story { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 18px; align-items: stretch; }
+  .pcol {
+    border-radius: var(--radius); padding: 22px 26px; border: 1px solid var(--border);
+    box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 16px;
+  }
+  .pcol.pain   { background: linear-gradient(180deg, rgba(248,81,73,.10), var(--panel)); border-color: rgba(248,81,73,.40); }
+  .pcol.relief { background: linear-gradient(180deg, rgba(63,185,80,.10), var(--panel)); border-color: rgba(63,185,80,.40); }
+  .pcol .pc-h { font-size: 19px; font-weight: 800; }
+  .pcol.pain   .pc-h { color: #ff8a82; }
+  .pcol.relief .pc-h { color: var(--accent-2); }
+  .prow { display: grid; grid-template-columns: 116px 1fr; gap: 14px; align-items: start; }
+  .prow .who { font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; }
+  .prow .txt { font-size: 16px; line-height: 1.45; color: var(--muted); }
+  .prow .txt b { color: var(--text); font-weight: 800; }
+
+  /* ---------- How it works: 3 steps (slide 4) ---------- */
+  .steps3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 12px; }
+  .step3 {
+    border-radius: var(--radius); padding: 26px 28px; border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel)); box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .step3 .s-num {
+    font-family: "Cascadia Code", "Consolas", monospace; font-size: 30px; font-weight: 800;
+    color: var(--accent); line-height: 1;
+  }
+  .step3 .s-t { font-size: 20px; font-weight: 700; color: var(--text); }
+  .step3 .s-d { font-size: 16px; line-height: 1.5; color: var(--muted); }
+  .step3.last { border-color: rgba(63,185,80,.40); }
+  .step3.last .s-num { color: var(--accent-2); }
+
+  /* ---------- Before/after strip + section label (slide 4) ---------- */
+  .ba {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; margin-top: 18px;
+    border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow);
+  }
+  .ba .ba-side { padding: 15px 24px; display: flex; align-items: center; gap: 14px; }
+  .ba .ba-before { background: rgba(248,81,73,.10); }
+  .ba .ba-after  { background: rgba(63,185,80,.10); }
+  .ba .ba-ico { font-size: 26px; flex: none; }
+  .ba .ba-lbl { font-size: 11.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; margin-bottom: 2px; }
+  .ba .ba-before .ba-lbl { color: #ff8a82; }
+  .ba .ba-after .ba-lbl { color: var(--accent-2); }
+  .ba .ba-txt { font-size: 16px; color: var(--text); line-height: 1.4; }
+  .ba .ba-mid {
+    display: grid; place-items: center; padding: 0 18px; font-size: 22px; color: var(--muted);
+    background: var(--bg-soft); border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  }
+  .how-lbl {
+    font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); margin-top: 22px;
+  }
+
+  /* ---------- Pain (left) -> Copilot fix (right), row-aligned (slide 2) ---------- */
+  .pf2 { display: grid; grid-template-columns: 1fr 44px 1fr; column-gap: 0; row-gap: 13px; align-items: center; }
+  .pf2-h { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding-bottom: 1px; }
+  .pf2-h.pain { color: #ff8a82; }
+  .pf2-h.fix  { color: var(--accent-2); }
+  .pf2-cell {
+    border: 1px solid var(--border); border-radius: 12px; padding: 13px 17px;
+    display: flex; gap: 11px; align-items: flex-start; box-shadow: var(--shadow); height: 100%; box-sizing: border-box;
+  }
+  .pf2-cell.pain { background: rgba(248,81,73,.08); }
+  .pf2-cell.fix  { background: rgba(63,185,80,.07); }
+  .pf2-cell .pf-ico { font-size: 22px; flex: none; line-height: 1.1; }
+  .pf2-cell .pf-h { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+  .pf2-cell.pain .pf-h { color: #ff8a82; }
+  .pf2-cell.fix  .pf-h { color: var(--accent-2); }
+  .pf2-cell .pf-d { font-size: 14px; color: var(--muted); line-height: 1.42; }
+  .pf2-cell.fix .pf-d { color: var(--text); }
+  .pf2-arr { display: grid; place-items: center; color: var(--muted); font-size: 22px; }
+  .pf2-tag {
+    display: inline-block; margin-top: 7px;
+    font-family: "Cascadia Code", "Consolas", monospace; font-size: 11px; font-weight: 700;
+    padding: 2px 9px; border-radius: 6px; letter-spacing: .02em;
+  }
+  .pf2-cell.pain .pf2-tag { background: rgba(248,81,73,.15); color: #ff8a82; border: 1px solid rgba(248,81,73,.35); }
+  .pf2-cell.fix  .pf2-tag { background: rgba(63,185,80,.15); color: var(--accent-2); border: 1px solid rgba(63,185,80,.35); }
+  .hero-lbl {
+    font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); text-align: center; margin-top: 4px;
+  }
+
+  /* ---------- Trio cards: challenge / principle / capability (slides 2–4) ---------- */
+  .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .tc {
+    border: 1px solid var(--border); border-radius: 16px; padding: 26px 26px;
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel)); box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .tc .tc-ico { font-size: 40px; line-height: 1; }
+  .tc .tc-h { font-size: 21px; font-weight: 800; color: var(--text); }
+  .tc .tc-d { font-size: 16px; line-height: 1.5; color: var(--muted); }
+  .tc .tc-d code { font-family: "Cascadia Code","Consolas",monospace; font-size: 14.5px; color: var(--accent); }
+  .tc .tc-tag {
+    align-self: flex-start; margin-top: auto;
+    font-family: "Cascadia Code","Consolas",monospace; font-size: 12px; font-weight: 700;
+    padding: 3px 11px; border-radius: 7px;
+  }
+  .tc.pain { border-color: rgba(248,81,73,.35); }
+  .tc.pain .tc-h { color: #ff8a82; }
+  .tc.pain .tc-tag { background: rgba(248,81,73,.15); color: #ff8a82; border: 1px solid rgba(248,81,73,.35); }
+  .tc.good { border-color: rgba(63,185,80,.4); }
+  .tc.good .tc-h { color: var(--accent-2); }
+  .tc.good .tc-tag { background: rgba(63,185,80,.15); color: var(--accent-2); border: 1px solid rgba(63,185,80,.35); }
+  .tc.cop { border-color: rgba(88,166,255,.45); }
+  .tc.cop .tc-h { color: var(--accent); }
+  .tc.cop .tc-tag { background: rgba(88,166,255,.15); color: var(--accent); border: 1px solid rgba(88,166,255,.4); }
+
+  /* ---------- Slim pipeline strip (slide 2) ---------- */
+  .pipe-mini { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .pipe-mini .pm {
+    display: flex; align-items: center; gap: 9px; padding: 9px 16px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--panel); font-size: 15px; font-weight: 700; color: var(--text);
+  }
+  .pipe-mini .pm.new  { border-color: rgba(88,166,255,.6); color: var(--accent); }
+  .pipe-mini .pm.keep { border-color: rgba(63,185,80,.45); color: var(--accent-2); }
+  .pipe-mini .pm-tag { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 1px 7px; border-radius: 6px; }
+  .pipe-mini .pm.new .pm-tag  { background: var(--accent); color: #06121f; }
+  .pipe-mini .pm.keep .pm-tag { background: rgba(63,185,80,.16); color: var(--accent-2); border: 1px solid rgba(63,185,80,.4); }
+  .pipe-mini .pm-arr { color: var(--muted); font-size: 20px; }
+
+  /* ---------- Capability cards: can / can't (accountability) ---------- */
+  .caps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 20px; }
+  .cap {
+    position: relative; border-radius: var(--radius); padding: 26px 28px; border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel)); box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .cap .cap-mark { position: absolute; top: 22px; right: 26px; font-size: 26px; font-weight: 800; line-height: 1; }
+  .cap .cap-ico { font-size: 30px; line-height: 1; }
+  .cap .cap-t { font-size: 19px; font-weight: 700; color: var(--text); }
+  .cap .cap-d { font-size: 15.5px; line-height: 1.5; color: var(--muted); }
+  .cap.yes { border-color: rgba(63,185,80,.35); }
+  .cap.yes .cap-mark { color: var(--accent-2); }
+  .cap.no {
+    border-color: rgba(210,153,34,.55); box-shadow: 0 0 0 1px rgba(210,153,34,.3), var(--shadow);
+    background: linear-gradient(180deg, rgba(210,153,34,.10), var(--panel));
+  }
+  .cap.no .cap-mark { color: var(--accent-3); }
+  .cap.no .cap-t { color: var(--accent-3); }
+
+  /* ---------- Tune grid (2x2 positive cards) ---------- */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; grid-auto-rows: 1fr; }
+  .tcard {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: 12px; padding: 18px 22px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .tcard .th { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; gap: 10px; align-items: baseline; }
+  .tcard .td { font-size: 15px; color: var(--muted); line-height: 1.45; }
+  .tcard .td b { color: var(--accent); }
+  .tcard.preview { border-left-color: var(--purple); }
+  .tcard.preview .td b { color: var(--purple); }
+
+  /* ---------- Limits grid ---------- */
+  .mistakes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; grid-auto-rows: 1fr; }
+  .mistake {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-left: 3px solid var(--danger); border-radius: 12px; padding: 18px 22px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .mistake .mh { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; gap: 10px; align-items: baseline; }
+  .mistake .mh .mn { color: var(--danger); font-weight: 800; }
+  .mistake .md { font-size: 15px; color: var(--muted); line-height: 1.45; }
+  .mistake .md b { color: var(--accent-2); }
+
+  /* ---------- Placeholder slide ---------- */
+  .placeholder {
+    flex: 1; display: grid; place-items: center; margin-top: 26px;
+  }
+  .ph-box {
+    border: 2px dashed var(--accent-3); border-radius: 18px;
+    background: rgba(210,153,34,.06); padding: 44px 52px; text-align: center; max-width: 60ch;
+  }
+  .ph-box .ph-tag {
+    display: inline-block; background: var(--accent-3); color: #1a1304; font-weight: 800;
+    font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
+    padding: 6px 16px; border-radius: 999px; margin-bottom: 18px;
+  }
+  .ph-box h3 { font-size: 30px; font-weight: 700; margin-bottom: 12px; }
+  .ph-box p { font-size: 17px; color: var(--muted); line-height: 1.55; }
+  .ph-box .seam {
+    margin-top: 20px; font-size: 15px; color: var(--text);
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  }
+  .ph-box .seam span {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px;
+  }
+
+  /* Speaker notes never render on the audience slide */
+  .note { display: none !important; }
+
+  /* ---------- Footer / chrome ---------- */
+  .chrome {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 54px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; font-size: 13px; color: var(--muted);
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.35));
+    pointer-events: none;
+  }
+  .progress {
+    position: fixed; top: 0; left: 0; height: 3px; background: var(--accent);
+    transition: width .35s ease; z-index: 10;
+  }
+  .nav-hint { display: flex; gap: 6px; align-items: center; }
+  kbd {
+    background: var(--bg-soft); border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 5px; padding: 2px 7px; font-size: 12px; color: var(--text); font-family: inherit;
+  }
+  .controls { position: fixed; bottom: 14px; right: 24px; display: flex; gap: 8px; z-index: 11; }
+  .controls button {
+    width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--bg-soft); color: var(--text); font-size: 17px; cursor: pointer;
+    display: grid; place-items: center; transition: .15s;
+  }
+  .controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .pagenum { position: fixed; top: 22px; right: 30px; font-size: 14px; color: var(--muted); z-index: 11; }
+
+  /* ---------- Interactivity (hover only) ---------- */
+  @media (prefers-reduced-motion: reduce) { .slide { animation: none; } }
+  .card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+  .card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 22px 56px rgba(0,0,0,.5); }
+  .layer { transition: transform .2s ease, border-color .2s ease; }
+  .layer:hover { transform: translateX(6px); border-color: var(--accent); }
+  .tcard, .mistake { transition: transform .2s ease, border-left-color .2s ease; }
+  .tcard:hover { transform: translateY(-4px); }
+  .mistake:hover { transform: translateY(-4px); border-left-color: var(--accent-2); }
+
+
+  :root{--bg:#0d1117;--soft:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--gold:#d29922;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;padding:22px 26px;gap:18px;}
+  .top{display:flex;justify-content:space-between;align-items:center;}
+  .top .pos{font-size:15px;color:var(--muted);}
+  .top .timer{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
+  .grid{flex:1;display:grid;grid-template-columns:1.3fr 1fr;gap:18px;min-height:0;}
+  .panel{background:var(--soft);border:1px solid var(--border);border-radius:12px;padding:20px 22px;overflow:auto;}
+  .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:12px;}
+  .cur-eyebrow{color:var(--accent);font-size:14px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:8px;}
+  .cur-title{font-size:30px;font-weight:700;line-height:1.15;margin-bottom:18px;}
+  .note{font-size:19px;line-height:1.55;color:var(--text);}
+  .note b{color:var(--gold);}
+  .next-title{font-size:20px;font-weight:600;color:var(--muted);line-height:1.25;}
+  .next-note{font-size:15px;color:var(--muted);margin-top:12px;line-height:1.45;border-top:1px solid var(--border);padding-top:12px;}
+  .controls{display:flex;gap:10px;align-items:center;}
+  button{background:var(--soft);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 16px;font-size:15px;cursor:pointer;font-family:inherit;}
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  .hint{font-size:12px;color:var(--muted);margin-top:auto;padding-top:10px;}
+  kbd{background:var(--bg);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:11px;}
+
+
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --panel: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-2: #3fb950;
+    --accent-3: #d29922;
+    --danger: #f85149;
+    --purple: #bc8cff;
+    --radius: 14px;
+    --shadow: 0 18px 50px rgba(0,0,0,.45);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- Deck / slide framing ---------- */
+  .deck { position: fixed; inset: 0; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 60px 80px 76px;
+    animation: fade .45s ease;
+  }
+  .slide.active { display: flex; }
+
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 26px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1 { font-size: 52px; line-height: 1.08; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: 36px; line-height: 1.12; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .lead { font-size: 19px; color: var(--muted); max-width: 72ch; margin-top: 12px; line-height: 1.5; }
+
+  /* ---------- Title slide ---------- */
+  .title-slide { justify-content: center; }
+  .title-slide h1 { font-size: 60px; max-width: 24ch; }
+  .badge-row { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+  .badge {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: 15px;
+    color: var(--text);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2); }
+
+  /* ---------- Content layouts ---------- */
+  .body { margin-top: 26px; flex: 1; min-height: 0; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: stretch; }
+
+  .card {
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 {
+    font-size: 21px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .card .ico {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    font-size: 18px; background: rgba(88,166,255,.14); border: 1px solid rgba(88,166,255,.3);
+  }
+  ul.clean { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.clean li { font-size: 16.5px; line-height: 1.45; padding-left: 26px; position: relative; color: var(--text); }
+  ul.clean li::before {
+    content: "›"; position: absolute; left: 6px; top: -1px; color: var(--accent); font-weight: 700; font-size: 20px;
+  }
+  ul.clean li b { color: var(--text); }
+
+  code {
+    font-family: "Cascadia Code", "Consolas", monospace;
+    background: rgba(110,118,129,.18); border: 1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; font-size: .88em; color: var(--text);
+  }
+
+  /* ---------- Mode comparison (mental model) ---------- */
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; position: relative; }
+  .mode {
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel));
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 26px 28px; box-shadow: var(--shadow);
+  }
+  .mode.local  { border-top: 3px solid var(--accent); }
+  .mode.cloud  { border-top: 3px solid var(--purple); }
+  .mode .m-tag {
+    font-size: 12.5px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; margin-bottom: 6px;
+  }
+  .mode.local  .m-tag { color: var(--accent); }
+  .mode.cloud  .m-tag { color: var(--purple); }
+  .mode h3 { font-size: 24px; margin-bottom: 4px; }
+  .mode .m-where { font-size: 14px; color: var(--muted); font-family: "Cascadia Code","Consolas",monospace; margin-bottom: 16px; }
+  .modes .vs {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--bg); border: 1px solid var(--border); font-size: 13px; font-weight: 700;
+    color: var(--muted); z-index: 2;
+  }
+
+  /* ---------- Demo slot ---------- */
+  .demo-strip {
+    border: 1px solid var(--accent); border-radius: 12px;
+    background: linear-gradient(180deg, rgba(88,166,255,.12), rgba(88,166,255,.04));
+    padding: 16px 22px; display: flex; align-items: center; gap: 16px; font-size: 17px;
+  }
+  .demo-strip.cloud { border-color: var(--purple); background: linear-gradient(180deg, rgba(188,140,255,.12), rgba(188,140,255,.04)); }
+  .demo-strip .play {
+    width: 42px; height: 42px; border-radius: 10px; flex: none;
+    display: grid; place-items: center; font-size: 18px;
+    background: var(--accent); color: #06121f;
+  }
+  .demo-strip.cloud .play { background: var(--purple); color: #1a1024; }
+  .demo-strip .dlabel { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 12.5px; color: var(--accent); }
+  .demo-strip.cloud .dlabel { color: var(--purple); }
+  .demo-strip .dname { color: var(--text); }
+
+  /* ---------- Setup / Payoff cards ---------- */
+  .sp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 20px; }
+  .sp-card {
+    border-radius: var(--radius); padding: 22px 26px; border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--bg-soft), var(--panel)); box-shadow: var(--shadow);
+  }
+  .sp-card .sp-h {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .sp-card.setup  { border-top: 3px solid var(--accent); }
+  .sp-card.payoff { border-top: 3px solid var(--accent-2); }
+  .sp-card.setup  .sp-h { color: var(--accent); }
+  .sp-card.payoff .sp-h { color: var(--accent-2); }
+  .sp-card > p { font-size: 18px; line-height: 1.5; color: var(--text); }
+  .sp-card .watch {
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+    font-size: 15.5px; line-height: 1.45; color: var(--muted);
+  }
+  .sp-card .watch b { color: var(--accent-3); }
+
+  /* ---------- Guardrails grid ---------- */
+  .guards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .guard {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-2); border-radius: 12px; padding: 16px 20px;
+  }
+  .guard .gh { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .guard .gd { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+  .guard .gd code { font-size: .85em; }
+
+  /* ---------- Limits grid ---------- */
+  .mistakes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .mistake {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-left: 3px solid var(--danger); border-radius: 12px; padding: 16px 20px;
+  }
+  .mistake .mh { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; gap: 10px; align-items: baseline; }
+  .mistake .mh .mn { color: var(--danger); font-weight: 800; }
+  .mistake .md { font-size: 15px; color: var(--muted); line-height: 1.45; }
+  .mistake .md b { color: var(--accent-2); }
+
+  /* ---------- Decision table ---------- */
+  .decide { width: 100%; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .decide .drow {
+    display: grid; grid-template-columns: 2.2fr 1fr;
+    align-items: center; gap: 0 18px; padding: 13px 22px;
+    border-bottom: 1px solid var(--border); font-size: 16.5px;
+  }
+  .decide .drow:last-child { border-bottom: none; }
+  .decide .dhead {
+    background: rgba(110,118,129,.08); font-size: 12.5px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); font-weight: 600;
+  }
+  .decide .act { color: var(--text); }
+  .decide .reach { color: var(--accent); font-weight: 700; }
+  .decide .reach.cloud { color: var(--purple); }
+  .decide .reach.none { color: var(--danger); }
+
+  /* ---------- Takeaway band ---------- */
+  .takeaway {
+    margin-top: 20px; border-left: 3px solid var(--accent-3);
+    background: rgba(210,153,34,.07); padding: 16px 22px; border-radius: 0 10px 10px 0;
+    font-size: 17px; color: var(--text);
+  }
+  .takeaway b { color: var(--accent-3); }
+
+  /* ============================================================ */
+  /* ===============  Interactivity (hover only)  =============== */
+  /* ============================================================ */
+  /* No entrance / build animations. Content is simply present so it
+     never competes with the recorded demos. Only hover affordances. */
+  @media (prefers-reduced-motion: reduce) { .slide { animation: none; } }
+
+  .card, .mode { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+  .card:hover, .mode:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 22px 56px rgba(0,0,0,.5); }
+  .guard, .mistake { transition: transform .2s ease, border-left-color .2s ease; }
+  .guard:hover { transform: translateY(-4px); border-left-color: var(--accent); }
+  .mistake:hover { transform: translateY(-4px); border-left-color: var(--accent-2); }
+  .decide .drow:not(.dhead) { transition: background .2s ease; }
+  .decide .drow:not(.dhead):hover { background: rgba(88,166,255,.09); }
+
+  /* Speaker notes never render on the audience slide */
+  .note { display: none !important; }
+
+  /* ---------- Footer / chrome ---------- */
+  .chrome {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 54px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; font-size: 13px; color: var(--muted);
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.35));
+    pointer-events: none;
+  }
+  .progress {
+    position: fixed; top: 0; left: 0; height: 3px; background: var(--accent);
+    transition: width .35s ease; z-index: 10;
+  }
+  .nav-hint { display: flex; gap: 6px; align-items: center; }
+  kbd {
+    background: var(--bg-soft); border: 1px solid var(--border); border-bottom-width: 2px;
+    border-radius: 5px; padding: 2px 7px; font-size: 12px; color: var(--text); font-family: inherit;
+  }
+  .controls { position: fixed; bottom: 14px; right: 24px; display: flex; gap: 8px; z-index: 11; }
+  .controls button {
+    width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--bg-soft); color: var(--text); font-size: 17px; cursor: pointer;
+    display: grid; place-items: center; transition: .15s;
+  }
+  .controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .pagenum { position: fixed; top: 22px; right: 30px; font-size: 14px; color: var(--muted); z-index: 11; }
+
+
+  :root{--bg:#0d1117;--soft:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--gold:#d29922;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;padding:22px 26px;gap:18px;}
+  .top{display:flex;justify-content:space-between;align-items:center;}
+  .top .pos{font-size:15px;color:var(--muted);}
+  .top .timer{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
+  .grid{flex:1;display:grid;grid-template-columns:1.3fr 1fr;gap:18px;min-height:0;}
+  .panel{background:var(--soft);border:1px solid var(--border);border-radius:12px;padding:20px 22px;overflow:auto;}
+  .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:12px;}
+  .cur-eyebrow{color:var(--accent);font-size:14px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:8px;}
+  .cur-title{font-size:30px;font-weight:700;line-height:1.15;margin-bottom:18px;}
+  .note{font-size:19px;line-height:1.55;color:var(--text);}
+  .note b{color:var(--gold);}
+  .next-title{font-size:20px;font-weight:600;color:var(--muted);line-height:1.25;}
+  .next-note{font-size:15px;color:var(--muted);margin-top:12px;line-height:1.45;border-top:1px solid var(--border);padding-top:12px;}
+  .controls{display:flex;gap:10px;align-items:center;}
+  button{background:var(--soft);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 16px;font-size:15px;cursor:pointer;font-family:inherit;}
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  .hint{font-size:12px;color:var(--muted);margin-top:auto;padding-top:10px;}
+  kbd{background:var(--bg);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:11px;}
+
+.ag-row{display:flex;align-items:center;gap:22px;background:var(--bg-soft);border:1px solid var(--border);border-radius:14px;padding:18px 26px}
+.ag-n{flex:none;width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font-size:24px;font-weight:700}
+.ag-t{font-size:26px;font-weight:700;color:var(--text)}
+.ag-s{margin-left:auto;color:var(--muted);font-size:18px;letter-spacing:.02em}
+.dots{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:50;flex-wrap:wrap;justify-content:center;max-width:80%}
+.dots .dot{width:9px;height:9px;border-radius:50%;background:#30363d;cursor:pointer;transition:all .2s}
+.dots .dot:hover{background:#8b949e}
+.dots .dot.on{background:#f85149;width:22px;border-radius:5px}
+.cheat3 .drow{grid-template-columns:1.1fr 1.1fr 1.4fr !important}
+.guards{align-content:start}.guard{align-self:start}
+.grid2{grid-auto-rows:auto !important;align-content:start}.tcard{align-self:start;justify-content:flex-start !important}
+.mistakes{align-content:start}.mistake{align-self:start;justify-content:flex-start !important}
+.wc-row{display:grid;grid-template-columns:1.2fr 40px 1.2fr 1fr;align-items:center;gap:18px}
+.wc-row .pill{margin:0}.wc-row .wc-why{color:var(--muted);font-size:15px}
+</style></head>
+<body><div class="deck">
+<section class="slide title-slide">
+<h1>GitHub &amp; Copilot, Done Right</h1>
+<p class="lead">Land on GitHub, Set it up once. It pays you back every PR.</p>
+<div class="body" style="display:flex;flex-direction:column;gap:16px;margin-top:36px;flex:none">
+<div class="ag-row"><span class="ag-n" style="background:#e6edf3;color:#1a1024">1</span><span class="ag-t">Migration</span><span class="ag-s">the move &rarr;</span></div>
+<div class="ag-row"><span class="ag-n" style="background:#58a6ff;color:#0d1117">2</span><span class="ag-t">Customization</span><span class="ag-s">the stack &rarr;</span></div>
+<div class="ag-row"><span class="ag-n" style="background:#3fb950;color:#0d1117">3</span><span class="ag-t">Code Review</span><span class="ag-s">the gate &rarr;</span></div>
+<div class="ag-row"><span class="ag-n" style="background:#bc8cff;color:#1a1024">4</span><span class="ag-t">Autonomy</span><span class="ag-s">the limits &rarr;</span></div>
+</div></section><section class="slide title-slide">
+    <div class="eyebrow">ADO → GitHub</div>
+    <h1>Same Work. New Home. Better Tools.</h1>
+    <p class="lead">Your migration's underway. Here's how every Azure DevOps habit maps to GitHub — same Git, new home, free upgrades.</p>
+    <div class="badge-row">
+      <span class="badge"><span class="dot"></span>Repos &amp; branches</span>
+      <span class="badge"><span class="dot"></span>Boards → Issues</span>
+      <span class="badge"><span class="dot"></span>Pipelines → Actions</span>
+      <span class="badge"><span class="dot"></span>Pull requests</span>
+      <span class="badge"><span class="dot"></span>Artifacts → Packages</span>
+    </div>
+    <div class="note" hidden><b>Set the frame:</b> nobody in this room signed the contract, so don't sell the contract. Sell continuity first ("your muscle memory still works"), then the upgrade. The throughline for the whole hour: <i>familiar concept → GitHub equivalent → the upgrade you get for free.</i></div>
+  </section><section class="slide">
+    <div class="eyebrow">Workflow shift</div>
+    <h2>What Changes for Developers</h2>
+    <p class="lead">The fundamentals remain familiar, but GitHub brings repositories, reviews, automation, and AI assistance into a single workflow.</p>
+    <div class="body" style="display:flex;flex-direction:column;gap:14px;flex:none;margin-top:30px">
+      <div class="wc-row"><span class="pill ado">Repos (Git)</span><span class="arrow">→</span><span class="pill gh">Repositories</span><span class="wc-why">Consistent repo standards</span></div>
+      <div class="wc-row"><span class="pill ado">Boards &amp; Work Items</span><span class="arrow">→</span><span class="pill gh">Issues &amp; Projects</span><span class="wc-why">Work + code stay connected</span></div>
+      <div class="wc-row"><span class="pill ado">Pull Requests</span><span class="arrow">→</span><span class="pill gh">PRs + Copilot review</span><span class="wc-why">Faster AI-assisted reviews</span></div>
+      <div class="wc-row"><span class="pill ado">Pipelines (YAML)</span><span class="arrow">→</span><span class="pill gh">GitHub Actions</span><span class="wc-why">Automation beside code</span></div>
+      <div class="wc-row"><span class="pill ado">Branch policies</span><span class="arrow">→</span><span class="pill gh">Rulesets &amp; protection</span><span class="wc-why">Governance applied</span></div>
+    </div>
+    <div class="copilot-band" style="border-color:rgba(63,185,80,.5);background:rgba(63,185,80,.06)">
+      <span class="tag" style="background:var(--accent-2);color:#0d1117">WHAT CHANGES</span>
+      <span>Planning, coding, testing, reviewing, deploying stay the same — <b>AI assistance is added across every stage.</b></span>
+    </div>
+  </section><section class="slide">
+    <div class="eyebrow">The mental model</div>
+    <h2>Nothing disappears — it gets a new name</h2>
+    <p class="lead">Azure DevOps was five tools under one roof. GitHub is the same five jobs, mostly under the same roof — with Git itself completely unchanged. Here's the whole map on one screen.</p>
+    <div class="body stack">
+      <div class="maprow">
+        <div class="ado"><span class="k">Azure DevOps</span><span class="v">Azure Repos</span></div>
+        <div class="to">→</div>
+        <div class="gh"><span class="k">GitHub</span><span class="v">Repositories</span></div>
+      </div>
+      <div class="maprow">
+        <div class="ado"><span class="k">Azure DevOps</span><span class="v">Boards &amp; Work Items</span></div>
+        <div class="to">→</div>
+        <div class="gh"><span class="k">GitHub</span><span class="v">Issues + Projects</span></div>
+      </div>
+      <div class="maprow">
+        <div class="ado"><span class="k">Azure DevOps</span><span class="v">Pipelines (YAML / Classic)</span></div>
+        <div class="to">→</div>
+        <div class="gh"><span class="k">GitHub</span><span class="v">Actions (<code>.github/workflows</code>)</span></div>
+      </div>
+      <div class="maprow">
+        <div class="ado"><span class="k">Azure DevOps</span><span class="v">Branch Policies</span></div>
+        <div class="to">→</div>
+        <div class="gh"><span class="k">GitHub</span><span class="v">Rulesets / Branch Protection</span></div>
+      </div>
+      <div class="maprow">
+        <div class="ado"><span class="k">Azure DevOps</span><span class="v">Artifacts (Feeds)</span></div>
+        <div class="to">→</div>
+        <div class="gh"><span class="k">GitHub</span><span class="v">Packages</span></div>
+      </div>
+      <div class="maprow">
+        <div class="ado"><span class="k">Azure DevOps</span><span class="v">Test Plans / Wiki</span></div>
+        <div class="to">→</div>
+        <div class="gh"><span class="k">GitHub</span><span class="v">3rd-party + Marketplace / Wiki &amp; Pages</span></div>
+      </div>
+    </div>
+    <div class="note" hidden><b>This is the spine of the talk.</b> Let them photograph it. Say it out loud: "Git is Git — clone, branch, commit, push are byte-for-byte identical. What changes is the furniture around it." Flag the one honest gap early: Test Plans has no 1:1 in GitHub — that's the slide where you'll be straight with them.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Daily habit · Where your code lives</div>
+    <h2>Azure Repos → GitHub Repositories</h2>
+    <p class="lead">The thing you touch a hundred times a day. The good news: the part you actually use — <b>Git</b> — doesn't change at all.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="tag-s">Familiar · ADO</div>
+          <div class="ico">📁</div>
+          <h3>Azure Repos</h3>
+          <p>Git repos, one default branch, your remote pointed at <code>dev.azure.com</code>.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="tag-s">Equivalent · GitHub</div>
+          <div class="ico">🐙</div>
+          <h3>Repositories</h3>
+          <p>Same Git. <b>Re-point the remote</b>, push, done. <code>clone · branch · commit · push</code> are byte-for-byte identical.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step up">
+          <div class="tag-s">The upgrade</div>
+          <div class="ico">🔍</div>
+          <h3>Code search + Codespaces</h3>
+          <p>Org-wide semantic <b>code search</b>, and a full dev environment in the browser in seconds — no "works on my machine".</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>Your muscle memory survives:</b> the only command you change is the URL in <code>git remote set-url</code>. Everything else you already know.</div>
+    </div>
+    <div class="note" hidden><b>Lead with continuity.</b> The fear here is "I have to relearn Git" — kill it in the first ten seconds. The remote-swap line is the whole point. Codespaces is the "oh, nice" moment — mention onboarding a new dev drops from a day to a click.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Daily habit · Tracking work</div>
+    <h2>Boards &amp; Work Items → Issues + Projects</h2>
+    <p class="lead">Where you pick up "what am I doing today". The names change and the hierarchy gets flatter — this is the one that feels the most different at first.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="tag-s">Familiar · ADO</div>
+          <div class="ico">📋</div>
+          <h3>Boards &amp; Work Items</h3>
+          <p>Epics → Features → User Stories → Tasks, area paths, iterations, a Kanban board.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="tag-s">Equivalent · GitHub</div>
+          <div class="ico">🎯</div>
+          <h3>Issues + Projects</h3>
+          <p><b>Issues</b> replace work items; <b>Projects</b> give you the boards, tables, and roadmaps. Hierarchy is flatter — labels &amp; sub-issues, not rigid types.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step up">
+          <div class="tag-s">The upgrade</div>
+          <div class="ico">🔗</div>
+          <h3>Code-linked &amp; automated</h3>
+          <p>An issue closes itself when the PR merges (<code>Fixes #123</code>). Hand an issue to <b>Copilot coding agent</b> and it opens a draft PR for you.</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>Honest heads-up:</b> if your team leans hard on area paths and rigid work-item types, expect to redesign with <b>labels + Projects fields</b> — not copy them 1:1.</div>
+    </div>
+    <div class="note" hidden><b>This is the highest-friction slide — be straight.</b> Don't pretend Issues == Work Items. The hierarchy is genuinely flatter and that trips up teams with deep Epic→Feature→Story trees. Say it. Then pivot to the upgrade: auto-close on merge and Copilot picking up an issue are things ADO never did.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Daily habit · How your build turns green</div>
+    <h2>Pipelines → GitHub Actions</h2>
+    <p class="lead">The big one. Different YAML, same idea: an event triggers jobs that run on a runner. If you write Pipelines YAML today, this reads as a dialect, not a new language.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="tag-s">Familiar · ADO</div>
+          <div class="ico">⚙️</div>
+          <h3>Azure Pipelines</h3>
+          <p><code>azure-pipelines.yml</code> · <code>stages → jobs → steps</code> · <code>tasks</code> · variable groups · agent pools.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="tag-s">Equivalent · GitHub</div>
+          <div class="ico">🚀</div>
+          <h3>Actions</h3>
+          <p><code>.github/workflows/*.yml</code> · <code>jobs → steps</code> · <code>uses:</code> actions · secrets/variables · runners.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step up">
+          <div class="tag-s">The upgrade</div>
+          <div class="ico">🛒</div>
+          <h3>Marketplace + OIDC</h3>
+          <p>Thousands of prebuilt actions instead of bespoke tasks, and <b>keyless OIDC</b> auth to Azure — no service-principal secrets to rotate.</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>Translation table:</b> <code>task:</code> → <code>uses:</code> · <code>variable group</code> → <code>Environment secret</code> · <code>agent pool</code> → <code>runs-on</code> · <code>stage</code> → a job with <code>needs:</code>.</div>
+    </div>
+    <div class="note" hidden><b>The slide they came for.</b> Most "migration anxiety" lives here. Anchor every new term to the ADO one they know (the translation strip). Two things to stress: (1) Marketplace means you stop maintaining custom tasks; (2) OIDC kills the secret-rotation chore — that's a real daily-life win, not a feature bullet.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Daily habit · Getting code reviewed</div>
+    <h2>Pull Requests → Pull Requests</h2>
+    <p class="lead">Here's the easy one: the name is literally the same, and the workflow is what GitHub <i>invented</i>. If anything, this gets more comfortable, not less.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="tag-s">Familiar · ADO</div>
+          <div class="ico">🔀</div>
+          <h3>ADO Pull Requests</h3>
+          <p>Reviewers, required approvals, comment threads, work-item links, branch-policy gates.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="tag-s">Equivalent · GitHub</div>
+          <div class="ico">✅</div>
+          <h3>GitHub Pull Requests</h3>
+          <p>Same model — reviewers, required checks, threads, <b>CODEOWNERS</b> for auto-assignment, merge queue for serializing merges.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step up">
+          <div class="tag-s">The upgrade</div>
+          <div class="ico">🤖</div>
+          <h3>Copilot code review</h3>
+          <p>Request a review from <b>Copilot</b> and get a first pass in seconds — before a human ever looks. Catches the obvious stuff so reviewers focus on design.</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>The reframe:</b> you're not learning a new review tool — you're moving to the one everyone else's review tool was copying.</div>
+    </div>
+    <div class="note" hidden><b>This is your confidence-builder — place it after the scary Pipelines slide on purpose.</b> The map here is nearly 1:1, so spend the time on the upgrades: CODEOWNERS (rules-as-code for who reviews what) and Copilot review (a free first reviewer). Tie back to the customization deck if this audience saw it.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Daily habit · Sharing built dependencies</div>
+    <h2>Azure Artifacts → GitHub Packages</h2>
+    <p class="lead">Where your NuGet / npm / Maven packages live. Same job — host and version your internal dependencies — wired to the same place your code already is.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="tag-s">Familiar · ADO</div>
+          <div class="ico">📦</div>
+          <h3>Azure Artifacts</h3>
+          <p>Feeds for NuGet, npm, Maven, Python; upstream sources; per-feed permissions.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="tag-s">Equivalent · GitHub</div>
+          <div class="ico">🗃️</div>
+          <h3>GitHub Packages</h3>
+          <p>Same ecosystems, published from your workflow with the built-in <code>GITHUB_TOKEN</code> — permissions inherit from the repo/org.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step up">
+          <div class="tag-s">The upgrade</div>
+          <div class="ico">🛡️</div>
+          <h3>One graph, end to end</h3>
+          <p>Packages, source, and <b>Dependabot</b> alerts share one identity model — a vulnerable dependency traces straight back to the code.</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>Watch-out:</b> container images and some ecosystems behave slightly differently — confirm your specific package types early, don't assume a clean lift-and-shift.</div>
+    </div>
+    <div class="note" hidden><b>Lower-stakes slide, keep it tight.</b> The honest caveat (containers/GHCR, ecosystem quirks) matters — don't oversell a perfect mapping. The real win is the unified identity: no separate feed PATs, the workflow token just works.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Daily habit · Guarding the main branch</div>
+    <h2>Branch Policies → Rulesets</h2>
+    <p class="lead">The guardrails that stop a bad merge. Same intent — protect <code>main</code> — expressed as policy you can read, review, and version.</p>
+    <div class="body two-col">
+      <div class="card">
+        <h3><span class="ico">📐</span> What maps cleanly</h3>
+        <div class="sub-lbl">ADO setting → GitHub equivalent · carries over 1:1</div>
+        <ul class="check">
+          <li><b>Require a minimum number of reviewers</b> → required approvals</li>
+          <li><b>Build must pass</b> → required status checks</li>
+          <li><b>Linked work item</b> → required linked issue (via checks)</li>
+          <li><b>Reset votes on new push</b> → dismiss stale approvals</li>
+          <li><b>Comment resolution</b> → require conversation resolution</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(188,140,255,.4);">
+        <h3><span class="ico" style="background:rgba(188,140,255,.14);border-color:rgba(188,140,255,.3);">⬆️</span> The upgrade: Rulesets</h3>
+        <div class="sub-lbl">GitHub only · new capability ADO didn't have</div>
+        <ul class="clean">
+          <li><b>Org-wide, layered rules</b> — apply one policy across many repos at once</li>
+          <li><b>Evaluate / "dry-run" mode</b> before you enforce</li>
+          <li><b>Stored as config</b> you can export and review like code</li>
+          <li><b>Bypass lists</b> that are explicit and auditable</li>
+        </ul>
+      </div>
+    </div>
+    <div class="takeaway"><b>The shift in mindset:</b> in ADO you set policies per branch, per repo, by hand. With Rulesets you write the guardrail <b>once at the org level</b> and it covers every repo that matches — governance stops being copy-paste.</div>
+    <div class="note" hidden><b>Two-column on purpose:</b> left says "your policies survive", right says "and they scale". The killer line is org-level rulesets — anyone who has hand-configured branch policies across 40 repos will feel that pain instantly. Mention evaluate mode: you can see what a rule <i>would</i> block before turning it on.</div>
+  </section><section class="slide">
+    <div class="eyebrow">The one-screen cheat sheet</div>
+    <h2>Photograph this slide</h2>
+    <div class="body">
+      <div class="decide cheat3">
+        <div class="drow dhead"><div>In Azure DevOps…</div><div>In GitHub…</div><div>The upgrade you get</div></div>
+        <div class="drow"><div class="act">Azure Repos</div><div class="reach">Repositories</div><div class="up">Org-wide code search + Codespaces</div></div>
+        <div class="drow"><div class="act">Boards / Work Items</div><div class="reach">Issues + Projects</div><div class="up">Auto-close on merge · Copilot picks up issues</div></div>
+        <div class="drow"><div class="act">Pipelines YAML</div><div class="reach">Actions workflows</div><div class="up">Marketplace actions · keyless OIDC to Azure</div></div>
+        <div class="drow"><div class="act">Branch Policies</div><div class="reach">Rulesets</div><div class="up">Write once at org level · evaluate mode</div></div>
+        <div class="drow"><div class="act">Pull Requests</div><div class="reach">Pull Requests</div><div class="up">CODEOWNERS · Copilot first-pass review</div></div>
+        <div class="drow"><div class="act">Azure Artifacts</div><div class="reach">Packages</div><div class="up">Unified token · Dependabot on the same graph</div></div>
+        <div class="drow"><div class="act">Variable Groups</div><div class="reach">Environments + Secrets</div><div class="up">Per-environment approval gates</div></div>
+        <div class="drow"><div class="act">Service Connections</div><div class="reach">OIDC / App + Secrets</div><div class="up">No long-lived credentials to rotate</div></div>
+      </div>
+    </div>
+    <div class="note" hidden><b>The takeaway artifact.</b> Don't read every row — let them shoot it with a phone. Walk only the two or three rows this team lives in daily. The point of three columns: column 1 says "you're safe", column 2 says "here's the new word", column 3 says "and here's what you got for free".</div>
+  </section><section class="slide title-slide">
+    <div class="eyebrow">Developer Deep Dive</div>
+    <h1>Making AI-Assisted Development Repeatable</h1>
+    <p class="lead">Copilot is fast — but on its own it writes <i>generic</i> code that doesn't know your stack, your security rules, or your conventions. The real win is knowing <b style="color:var(--text)">which lever to pull for which problem</b>. This is that map.</p>
+    <div class="badge-row">
+      <span class="badge"><span class="dot"></span>Repository instructions</span>
+      <span class="badge"><span class="dot"></span>Path-specific rules</span>
+      <span class="badge"><span class="dot"></span>Prompt files</span>
+      <span class="badge"><span class="dot"></span>Custom agents</span>
+      <span class="badge"><span class="dot"></span>Skills</span>
+    </div>
+    <div class="note" hidden><b>Open the deep dive:</b> the cheat sheet tells you what files exist; it doesn't tell you what to do on Monday. This hour answers the three questions it skips — which one do I need, why, and what goes wrong. Set the throughline: customization is a stack, not a single file.</div>
+  </section><section class="slide">
+    <div class="eyebrow">The mental model</div>
+    <h2>Five layers, five jobs</h2>
+    <p class="lead">Customization isn't one feature — it's a stack. Each layer answers a different question. The single most common mistake is cramming everything into layer one.</p>
+    <div class="body stack">
+      <div class="layer">
+        <div class="l-num">1</div>
+        <div><div class="l-t">Repository instructions</div><div class="l-f">.github/copilot-instructions.md</div></div>
+        <div class="l-job">How should you ALWAYS behave here?</div>
+      </div>
+      <div class="layer">
+        <div class="l-num">2</div>
+        <div><div class="l-t">Path-specific instructions</div><div class="l-f">*.instructions.md</div></div>
+        <div class="l-job">How to behave for THESE files?</div>
+      </div>
+      <div class="layer">
+        <div class="l-num">3</div>
+        <div><div class="l-t">Prompt files</div><div class="l-f">*.prompt.md</div></div>
+        <div class="l-job">Do THIS repeatable task</div>
+      </div>
+      <div class="layer">
+        <div class="l-num">4</div>
+        <div><div class="l-t">Custom agents</div><div class="l-f">.github/agents/*.agent.md</div></div>
+        <div class="l-job">Be THIS persona with THESE tools</div>
+      </div>
+      <div class="layer">
+        <div class="l-num">5</div>
+        <div><div class="l-t">Skills</div><div class="l-f">SKILL.md + resources</div></div>
+        <div class="l-job">Reach for THIS knowledge when relevant</div>
+      </div>
+    </div>
+    <div class="note" hidden><b>Read the stack as a sentence:</b> standing rules → scoped exceptions → reusable requests → persona+toolset → self-triggered knowledge. The diagram is the spine of the whole session — everything that follows is one layer at a time.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Layer 1 · Repository instructions</div>
+    <h2>Stop re-explaining your standards to Copilot</h2>
+    <div class="filename"><span class="fl">File</span><code>.github/copilot-instructions.md</code></div>
+    <p class="lead">One Markdown file at the top of your repo that aligns Copilot with your team — automatically, on every request.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="ico">🤖</div>
+          <h3>Standard Copilot</h3>
+          <p>Knows the language, not your team. Left alone, it guesses at your conventions.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="ico">📝</div>
+          <h3>The instruction file</h3>
+          <div class="mini">
+            <div class="bar"><span class="dot"></span><span class="fn">.github/copilot-instructions.md</span></div>
+            <div class="code"><span class="c"># our house rules</span>
+Use <b>arrow functions</b>.
+Validate input with <b>Zod</b>.
+Log through our <b>logger</b>.</div>
+          </div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <div class="ico">💡</div>
+          <h3>Consistent Output</h3>
+          <p>Copilot reads it automatically. Every suggestion respects your project's exact guardrails.</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>The result:</b> The whole team's rules live in the repo, not in people's heads — applied on every suggestion, for everyone, automatically.</div>
+    </div>
+    <div class="note" hidden><b>Layer 1:</b> three beats — standard Copilot guesses, the file states the rules, output matches. Land that it applies to everyone on every request, not just at review time.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Layer 2 · Path-specific instructions</div>
+    <h2>Rules for certain files only</h2>
+    <div class="filename"><span class="fl">File</span><code>*.instructions.md</code></div>
+    <p class="lead">Some rules belong to just <i>some</i> files — like your tests. One line names which files a rule covers, and Copilot follows it there and nowhere else.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="ico">⚠️</div>
+          <h3>One global rule</h3>
+          <p>A test-only rule in the global file leaks into your normal code too.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="ico">📝</div>
+          <h3>A path-scoped file</h3>
+          <div class="mini">
+            <div class="bar"><span class="dot"></span><span class="fn">tests.instructions.md</span></div>
+            <div class="code">---
+<b>applyTo: "**/*.test.ts"</b>
+---
+Use Arrange-Act-Assert.</div>
+          </div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <div class="ico">✅</div>
+          <h3>Right rule, right files</h3>
+          <p>Test files follow test rules. Everything else is left untouched.</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>The result:</b> Each rule lives next to the code it governs — no catch-all file stuffed with “but only for tests…” exceptions.</div>
+    </div>
+    <div class="note" hidden><b>Layer 2:</b> the “I didn’t know that existed” moment. Same project, one rule that only switches on inside test files.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Layer 3 · Prompt files</div>
+    <h2>Save a routine as one command</h2>
+    <div class="filename"><span class="fl">File</span><code>*.prompt.md</code></div>
+    <p class="lead">A task you do again and again — like adding an API endpoint — written down once, then run like a command.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="ico">🔁</div>
+          <h3>Done by hand each time</h3>
+          <p>Everyone adds an endpoint a slightly different way, and a step gets missed.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="ico">📝</div>
+          <h3>A saved command</h3>
+          <div class="mini">
+            <div class="bar"><span class="dot"></span><span class="fn">new-endpoint.prompt.md</span></div>
+            <div class="code"><span class="c"># run it like a command</span>
+Create the route, schema, test,
+and docs for a new
+<b>${input:resource}</b> endpoint.</div>
+          </div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <div class="ico">⚡</div>
+          <h3>One command, every time</h3>
+          <p>Route, schema, test, and docs — built the same correct way for everyone.</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>The result:</b> The right way to do a task is written down once and runs identically for the senior and the new joiner.</div>
+    </div>
+    <div class="note" hidden><b>Layer 3:</b> the highest-leverage layer for teams — one command, the same correct files every time. It freezes the “right way” so it can’t drift.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Layer 4 · Custom agents</div>
+    <h2>A focused mode with limited tools</h2>
+    <div class="filename"><span class="fl">File</span><code>.github/agents/*.agent.md</code></div>
+    <p class="lead">A named mode for one kind of work where <b style="color:var(--text)">you choose which tools it can use</b> — so it physically can’t do the rest.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="ico">🤞</div>
+          <h3>Hope it behaves</h3>
+          <p>You trust a paragraph of instructions to stop the AI touching what it shouldn’t.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="ico">📝</div>
+          <h3>A tool-limited mode</h3>
+          <div class="mini">
+            <div class="bar"><span class="dot"></span><span class="fn">reviewer.agent.md</span></div>
+            <div class="code"><span class="c"># only the tools it’s allowed</span>
+<b>tools: [read, search]</b>
+Review the code and
+suggest changes.</div>
+          </div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <div class="ico">🛡️</div>
+          <h3>It simply can’t</h3>
+          <p>A reviewer with no edit tool cannot change your code — even if you ask it to.</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>The result:</b> Safety by capability, not by request — a tool it doesn’t have beats a rule asking it to behave.</div>
+    </div>
+    <div class="note" hidden><b>Layer 4:</b> skip the “cute persona” framing. The real point is safety by capability — a tool it doesn’t have beats a rule asking it to behave.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Layer 5 · Skills</div>
+    <h2>Knowledge Copilot picks up on its own</h2>
+    <div class="filename"><span class="fl">File</span><code>SKILL.md</code></div>
+    <p class="lead">A folder of know-how with a short note about when it’s useful. You don’t call it — Copilot reads the note, sees your task matches, and uses it <b style="color:var(--text)">on its own</b>.</p>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:8px;">
+      <div class="flow">
+        <div class="step">
+          <div class="ico">📚</div>
+          <h3>Knowledge nobody loads</h3>
+          <p>Expertise sits in someone’s head or a wiki, so Copilot never applies it.</p>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step hero">
+          <div class="ico">📝</div>
+          <h3>A skill with a trigger</h3>
+          <div class="mini">
+            <div class="bar"><span class="dot"></span><span class="fn">SKILL.md</span></div>
+            <div class="code"><span class="c"># the description is the trigger</span>
+<b>description: Use when drafting</b>
+release notes from merged
+pull requests.</div>
+          </div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="step">
+          <div class="ico">🤖</div>
+          <h3>Copilot pulls it in</h3>
+          <p>You say “draft release notes” and Copilot loads the skill by itself.</p>
+        </div>
+      </div>
+      <div class="result">🎯 &nbsp;<b>The result:</b> The expert’s know-how fires automatically — no one has to remember the skill exists.</div>
+    </div>
+    <div class="note" hidden><b>Layer 5:</b> the newest layer. The difference from a prompt file is who starts it — you, or Copilot. The description decides whether it ever fires.</div>
+  </section><section class="slide">
+    <div class="eyebrow">The distinction people miss</div>
+    <h2>Prompt file or skill?</h2>
+    <p class="lead">Same question, asked precisely: <b style="color:var(--text)">who pulls the trigger?</b></p>
+    <div class="body two-col">
+      <div class="card" style="border-color:rgba(63,185,80,.4);">
+        <h3><span class="ico" style="background:rgba(63,185,80,.14);border-color:rgba(63,185,80,.3);">🧑</span> You trigger it → Prompt file</h3>
+        <ul class="clean">
+          <li>You pick it from a list and run it</li>
+          <li>Best for a chore you <b>know</b> you're about to do</li>
+          <li>Always-on intent lives with the human</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(188,140,255,.4);">
+        <h3><span class="ico" style="background:rgba(188,140,255,.14);border-color:rgba(188,140,255,.3);">🤖</span> The AI triggers it → Skill</h3>
+        <ul class="clean">
+          <li>Copilot recognizes the moment from the <code>description</code></li>
+          <li>Knowledge is <b>occasionally relevant</b>, not always-on</li>
+          <li>Needs bundled assets — a helper script, a strict template</li>
+        </ul>
+      </div>
+    </div>
+    <div class="takeaway"><b>Rule of thumb:</b> if a human has to remember to trigger it, it's a <b>prompt file</b>. If you want the AI to recognize the moment and pull it in, it's a <b>skill</b>. Write the description like a trigger, not a label.</div>
+    <div class="note" hidden><b>The disambiguation slide:</b> this is the question developers actually ask. Keep the answer to one axis — who pulls the trigger — and the rest falls out. Reinforce: a vague description means the skill never fires.</div>
+  </section><section class="slide">
+    <div class="eyebrow">A decision table you'll actually use</div>
+    <h2>If you're thinking… reach for…</h2>
+    <div class="body">
+      <div class="decide">
+        <div class="drow dhead"><div>If you're thinking…</div><div>Reach for…</div></div>
+        <div class="drow"><div class="act">"It should <i>always</i> know our stack and rules."</div><div class="reach">Repository instructions</div></div>
+        <div class="drow"><div class="act">"This only applies to tests / migrations / one folder."</div><div class="reach">Path-specific *.instructions.md</div></div>
+        <div class="drow"><div class="act">"We do this same chore over and over."</div><div class="reach">Prompt file</div></div>
+        <div class="drow"><div class="act">"I want a safe, focused mode for one kind of work."</div><div class="reach">Custom agent</div></div>
+        <div class="drow"><div class="act">"I want it to stop suggesting class components."</div><div class="reach">Repository instructions (one line)</div></div>
+        <div class="drow"><div class="act">"Generate our standard PR description."</div><div class="reach">Prompt file</div></div>
+        <div class="drow"><div class="act">"Niche know-how the AI should pull in <i>automatically</i> when a task fits."</div><div class="reach">Skill</div></div>
+        <div class="drow"><div class="act">"It needs a helper script or strict template bundled in."</div><div class="reach">Skill</div></div>
+      </div>
+    </div>
+    <div class="note" hidden><b>The lookup slide:</b> don't read every row — let them photograph it. Pick two or three rows that match real things this team cares about and walk those. The point is that the choice is mechanical once you frame the question right.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Make it last</div>
+    <h2>Treat your customization files like code</h2>
+    <p class="lead">Your instructions, prompts, agents and skills change what the AI ships on every request — <b style="color:var(--text)">they’re code, not docs.</b> Left unowned they go stale, and a stale rule is worse than none. So give them what your code already gets:</p>
+    <div class="body">
+      <div class="life">
+        <div class="item"><div class="lh"><span class="ck">✓</span> An owner</div><div class="ld">Add the paths to <code>CODEOWNERS</code>. Someone is accountable — or it drifts.</div></div>
+        <div class="item"><div class="lh"><span class="ck">✓</span> PR review</div><div class="ld">Changing a rule changes the AI’s behaviour. Review it like any code change.</div></div>
+        <div class="item"><div class="lh"><span class="ck">✓</span> Version control</div><div class="ld">They live beside the code they govern — they branch, diff and roll back with it.</div></div>
+        <div class="item"><div class="lh"><span class="ck">✓</span> Tests</div><div class="ld">Keep a few sample prompts. Re-run them after edits to prove the rule still works.</div></div>
+        <div class="item"><div class="lh"><span class="ck">✓</span> Clean-up</div><div class="ld">Every quarter, delete rules pointing at conventions you’ve already dropped.</div></div>
+        <div class="item"><div class="lh"><span class="ck">✓</span> One source of truth</div><div class="ld">These files <i>are</i> your coding standard, made executable. Keep them in sync.</div></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>The difference that matters:</b> do this and customization compounds. Skip it and you’ve “made some AI docs once” — the thing everyone forgets in a quarter.</div>
+    <div class="note" hidden><b>Reframe the whole hour:</b> the five layers were the <i>what</i>; this is the <i>so it lasts</i>. Push hard on “a rotten rule is worse than no rule.” This is the slide that separates teams who adopt from teams who dabble. Tie each row back to something they already do for code.</div>
+  </section><section class="slide">
+    <div class="eyebrow">What quietly wastes the effort</div>
+    <h2>The five mistakes</h2>
+    <p class="lead">Customization compounds — but only if you avoid the failure modes that make the AI ignore your work.</p>
+    <div class="body mistakes">
+      <div class="mistake">
+        <div class="mh"><span class="mn">1</span> Everything in one file</div>
+        <div class="md">A 500-line <code>copilot-instructions.md</code> dilutes every rule. <b>Split by scope into layer-2 files.</b></div>
+      </div>
+      <div class="mistake">
+        <div class="mh"><span class="mn">2</span> Writing essays, not rules</div>
+        <div class="md">"We generally prefer, where appropriate…" gets ignored. <b>Write imperatives: "Use X. Never Y."</b></div>
+      </div>
+      <div class="mistake">
+        <div class="mh"><span class="mn">3</span> Contradictory instructions</div>
+        <div class="md">Repo says "prefer async/await", a path file says "use .then() chains" → coin-flip behavior. <b>Audit for conflicts.</b></div>
+      </div>
+      <div class="mistake">
+        <div class="mh"><span class="mn">4</span> Set it and forget it</div>
+        <div class="md">Conventions change; the files don’t follow. Stale rules quietly point Copilot at dead patterns. <b>Own them, review in PRs, prune on a cadence.</b></div>
+      </div>
+      <div class="mistake" style="grid-column:1 / -1;">
+        <div class="mh"><span class="mn">5</span> Vague skill descriptions</div>
+        <div class="md">"Helps with docs" never triggers; "Use when drafting release notes or a changelog from merged PRs" does. <b>The description is the trigger, not a label.</b></div>
+      </div>
+    </div>
+    <div class="note" hidden><b>Close on the failure modes:</b> these are the reasons customization "doesn't work" for teams that tried it. Each maps to an earlier layer. Land the meta-point: a lean constitution plus two good prompt files beats a sprawling instructions doc every time — the AI, like a new teammate, follows clear rules better than long ones.</div>
+  </section><section class="slide title-slide">
+    <div class="eyebrow">Developer Deep Dive</div>
+    <h1>Code Review Is Where You Govern the AI</h1>
+    <p class="lead">When AI helps write the code, the question leadership asks is blunt: <b style="color:var(--text)">if AI writes it and AI reviews it, who is accountable?</b> The pull request is the answer — one checkpoint where Copilot does a first pass and a human still owns the merge.</p>
+    <div class="badge-row">
+      <span class="badge"><span class="dot"></span>Copilot code review</span>
+      <span class="badge"><span class="dot"></span>Custom review instructions</span>
+      <span class="badge"><span class="dot"></span>Human-in-the-loop</span>
+      <span class="badge"><span class="dot"></span>AI governance</span>
+    </div>
+    <div class="note" hidden><b>Open on the accountability question, not the feature.</b> For most engineering orgs this is the #1 governance ask: can AI approve code? Frame the whole section as "the PR is the gate where we answer that." Don't demo yet — set the stakes.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Traditional code review challenges</div>
+    <h2>Code review is the bottleneck</h2>
+    <p class="lead">Every change has to pass review before it ships — and today that gate is slow, inconsistent, and easy to slip past.</p>
+    <div class="body" style="justify-content:center;">
+      <div class="trio">
+        <div class="tc pain">
+          <div class="tc-ico">⏳</div>
+          <div class="tc-h">Reviews take days</div>
+          <div class="tc-d">Senior reviewers are overcommitted — PRs stall in back-and-forth queues while work piles up.</div>
+          <span class="tc-tag">Hours–Days</span>
+        </div>
+        <div class="tc pain">
+          <div class="tc-ico">🔁</div>
+          <div class="tc-h">Everyone reviews differently</div>
+          <div class="tc-d">The same code gets different feedback depending on who happens to look at it.</div>
+          <span class="tc-tag">Inconsistent</span>
+        </div>
+        <div class="tc pain">
+          <div class="tc-ico">🐛</div>
+          <div class="tc-h">Bugs get missed</div>
+          <div class="tc-d">Tired reviewers miss edge cases, leaks, and unhandled errors.</div>
+          <span class="tc-tag">Human fatigue</span>
+        </div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Slow, inconsistent, leaky</b> — and it’s the gate every change must pass through.</div>
+    <div class="note" hidden>Set the problem only. Don’t mention Copilot yet — name the three pains your audience feels every week.</div>
+  </section><section class="slide">
+    <div class="eyebrow">What good looks like</div>
+    <h2>Three things fix this — whatever the tool</h2>
+    <p class="lead">More reviewers won’t fix this — a <b style="color:var(--text)">better process</b> will.</p>
+    <div class="body" style="justify-content:center;">
+      <div class="trio">
+        <div class="tc good">
+          <div class="tc-ico">🤖</div>
+          <div class="tc-h">Automate the first pass</div>
+          <div class="tc-d">A machine reviews the moment code is pushed — no waiting on a person’s calendar.</div>
+          <span class="tc-tag">Fixes: slow</span>
+        </div>
+        <div class="tc good">
+          <div class="tc-ico">📏</div>
+          <div class="tc-h">Write the standard down</div>
+          <div class="tc-d">Put the team’s rules in one place so every review checks the same things.</div>
+          <span class="tc-tag">Fixes: inconsistent</span>
+        </div>
+        <div class="tc good">
+          <div class="tc-ico">🛡️</div>
+          <div class="tc-h">Check every change</div>
+          <div class="tc-d">Scan each diff for risky patterns automatically, before a human spends attention.</div>
+          <span class="tc-tag">Fixes: missed bugs</span>
+        </div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Speed</b> from automation · <b>consistency</b> from written rules · <b>safety</b> from checking everything, every time.</div>
+    <div class="note" hidden>Stay vendor-neutral here — these are the principles. Copilot is how you get all three at once: that’s the next slide.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Copilot code review</div>
+    <h2>GitHub Copilot does all three — inside the pull request</h2>
+    <div class="body" style="display:flex; flex-direction:column; justify-content:center; gap:22px;">
+      <div class="trio">
+        <div class="tc cop">
+          <div class="tc-ico">🤖</div>
+          <div class="tc-h">Automatic first pass</div>
+          <div class="tc-d">Reviews every PR the moment you open it — comments and fixes in seconds.</div>
+          <span class="tc-tag">→ no more waiting</span>
+        </div>
+        <div class="tc cop">
+          <div class="tc-ico">📏</div>
+          <div class="tc-h">Reviews to your rules</div>
+          <div class="tc-d">Reads your <code>copilot-instructions.md</code> and applies the same standard every time.</div>
+          <span class="tc-tag">→ consistent</span>
+        </div>
+        <div class="tc cop">
+          <div class="tc-ico">🛡️</div>
+          <div class="tc-h">Scans every diff</div>
+          <div class="tc-d">Flags edge cases, leaks, and risky changes before a human looks.</div>
+          <span class="tc-tag">→ fewer escapes</span>
+        </div>
+      </div>
+      <div class="pipe-mini">
+        <span class="pm">📥 You open a PR</span>
+        <span class="pm-arr">→</span>
+        <span class="pm new"><span class="pm-tag">New</span>🤖 Copilot reviews first</span>
+        <span class="pm-arr">→</span>
+        <span class="pm keep"><span class="pm-tag">Unchanged</span>👤 A human approves</span>
+      </div>
+    </div>
+    <div class="takeaway"><b>Same gate, faster path.</b> Copilot does the first pass — a human still owns the merge.</div>
+    <div class="note" hidden>Bridge to accountability — Copilot reviews, but the human still owns the merge.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Who’s accountable</div>
+    <h2>AI can write it and review it — but it can’t approve it</h2>
+    <p class="lead">Copilot can author a change and give it a first review. The one thing it can’t do is sign off the merge — that stays human, by your rule.</p>
+    <div class="body" style="justify-content:center;">
+      <div class="caps">
+        <div class="cap yes">
+          <div class="cap-mark">✓</div>
+          <div class="cap-ico">✍️</div>
+          <div class="cap-t">AI can write the code</div>
+          <div class="cap-d">Copilot’s agent can author a change on its own branch.</div>
+        </div>
+        <div class="cap yes">
+          <div class="cap-mark">✓</div>
+          <div class="cap-ico">🔍</div>
+          <div class="cap-t">AI can review the code</div>
+          <div class="cap-d">An automatic first pass on every pull request.</div>
+        </div>
+        <div class="cap no">
+          <div class="cap-mark">✗</div>
+          <div class="cap-ico">🔒</div>
+          <div class="cap-t">AI cannot approve the merge</div>
+          <div class="cap-d">A human with write access must sign off — required by your ruleset.</div>
+        </div>
+      </div>
+    </div>
+    <div class="takeaway"><b>That’s a policy you own, not a hope.</b> The merge gate is enforced by your required-review rule — and GitHub’s own guidance is to supplement Copilot with a human review.</div>
+    <div class="note" hidden><b>This is THE governance slide for this room.</b> AI is on both sides of the code, but the approval that ships it is a human action your ruleset enforces — ~90% confidence, because branch-protection required approvals are org-controlled. Say it plainly: the control is in your hands.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Make it review to YOUR standard</div>
+    <h2>Four dials that turn a generic reviewer into yours</h2>
+    <p class="lead">A default reviewer flags generic issues. The same customization stack you use to <i>write</i> code also governs how Copilot <i>reviews</i> it.</p>
+    <div class="body grid2">
+      <div class="tcard">
+        <div class="th">Custom instructions</div>
+        <div class="td">The same <code>copilot-instructions.md</code> — plus <b>org-level instructions</b> an owner sets once. Your conventions become the review rubric across every repo.</div>
+      </div>
+      <div class="tcard preview">
+        <div class="th">Review effort: Low / Medium</div>
+        <div class="td"><b>Low</b> is fast, default, catches common issues. <b>Medium</b> (preview) routes to a higher-reasoning model for security-sensitive and cross-service changes — at higher cost.</div>
+      </div>
+      <div class="tcard preview">
+        <div class="th">MCP servers &amp; agent skills</div>
+        <div class="td">(Preview) Pull context from issue trackers, docs, incident tooling into the review. <b>GitHub and Playwright MCP are on by default</b>; repo skills get reused when relevant.</div>
+      </div>
+      <div class="tcard">
+        <div class="th">Where it runs automatically</div>
+        <div class="td">Configure auto-review at <b>repo or org</b> level — on PR open, on every new push, or even on drafts. On <b>Business &amp; Enterprise</b>, the org setting makes it a standard, not a habit.</div>
+      </div>
+    </div>
+    <div class="note" hidden><b>Connect back to the customization deck.</b> The point that lands: "the instructions you wrote to make Copilot write your way are the same instructions that make it review your way." Flag preview items in purple — don't let them standardise on something that can change.</div>
+  </section><section class="slide title-slide">
+    <div class="eyebrow">Developer Deep Dive</div>
+    <h1>Putting Copilot to Work — Autonomously</h1>
+    <p class="lead">Customization made Copilot follow <b style="color:var(--text)">your</b> rules. This part hands it <b style="color:var(--text)">whole tasks</b> and lets it run — beside you in the editor, or unattended in the cloud while you do something else. The skill is knowing how much leash to give, and where the leash attaches.</p>
+    <div class="badge-row">
+      <span class="badge"><span class="dot"></span>Agent mode (local)</span>
+      <span class="badge"><span class="dot"></span>Cloud agent (background)</span>
+      <span class="badge"><span class="dot"></span>Guardrails</span>
+      <span class="badge"><span class="dot"></span>Hard limits</span>
+      <span class="badge"><span class="dot"></span>Measuring it</span>
+    </div>
+    <div class="note" hidden><b>The arc:</b> setup, this is payoff. Customization only matters because something now acts on it autonomously. Throughline: two kinds of autonomy, the same guardrails underneath, and honest limits.</div>
+  </section><section class="slide">
+    <div class="eyebrow">The mental model</div>
+    <h2>Two kinds of autonomy</h2>
+    <p class="lead">Both let Copilot plan and act on its own. The difference is <b style="color:var(--text)">where it runs</b> and <b style="color:var(--text)">whether you're watching</b>. Pick by how much you need to steer in real time.</p>
+    <div class="body modes">
+      <div class="vs">vs</div>
+      <div class="mode local">
+        <div class="m-tag">Synchronous · you watch</div>
+        <h3>Agent mode</h3>
+        <div class="m-where">in your IDE — VS Code, Visual Studio</div>
+        <ul class="clean">
+          <li>Makes autonomous edits in <b>your local workspace</b></li>
+          <li>Plans, edits across files, runs tests, self-corrects — <b>live, in front of you</b></li>
+          <li>You steer mid-flight; nothing leaves your machine until you commit</li>
+          <li>Best when the task needs <b>your judgement turn by turn</b></li>
+        </ul>
+      </div>
+      <div class="mode cloud">
+        <div class="m-tag">Asynchronous · background</div>
+        <h3>Cloud agent</h3>
+        <div class="m-where">on GitHub — a GitHub Actions environment</div>
+        <ul class="clean">
+          <li>Works <b>unattended</b> in an ephemeral cloud environment</li>
+          <li>You assign an <b>issue</b> (or <code>@copilot</code> a PR); it researches, codes, tests, opens a PR</li>
+          <li>Every step is a commit in the logs — <b>transparent and reviewable</b></li>
+          <li>Best for <b>well-scoped work you'd rather not babysit</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="takeaway"><b>When to reach for which:</b> agent mode when the task needs your judgement <i>during</i> the work; cloud agent for the tech-debt and "nice-to-haves" that rot on the backlog — review its PR like any teammate's.</div>
+    <div class="note" hidden><b>The one distinction that matters:</b> local + synchronous (you in the loop every step) vs cloud + asynchronous (you review the PR at the end). Everything else — guardrails, limits — applies to both. The cloud agent was formerly called the "coding agent"; the name changed, the behaviour didn't.</div>
+  </section><section class="slide">
+    <div class="eyebrow">Where the leash attaches</div>
+    <h2>Autonomy is only as safe as its guardrails</h2>
+    <p class="lead">The same customization you wrote is what keeps an unattended agent on the rails — plus a few controls specific to autonomy.</p>
+    <div class="body guards">
+      <div class="guard">
+        <div class="gh">Custom instructions</div>
+        <div class="gd">Your repo rules and how to build, test and validate — the agent reads them on every task.</div>
+      </div>
+      <div class="guard">
+        <div class="gh">Custom agents</div>
+        <div class="gd">Specialised personas with a <b>restricted toolset</b> — a frontend agent, a docs agent, a test agent.</div>
+      </div>
+      <div class="guard">
+        <div class="gh">MCP servers</div>
+        <div class="gd">Scope what data and tools it can reach. GitHub &amp; Playwright MCP are on by default; you control the rest.</div>
+      </div>
+      <div class="guard">
+        <div class="gh">Hooks</div>
+        <div class="gd">Run your own shell commands at key points — validation, logging, <b>security scanning</b> — during the agent's run.</div>
+      </div>
+      <div class="guard">
+        <div class="gh">Branch protection &amp; rulesets</div>
+        <div class="gd">It still obeys your rules. Required reviews stand; it can't merge its own PR. Add Copilot as a bypass actor only where you mean to.</div>
+      </div>
+      <div class="guard">
+        <div class="gh">Required human review</div>
+        <div class="gd">The output is a <b>pull request</b>, not a push to main. A human approves before anything ships.</div>
+      </div>
+    </div>
+    <div class="note" hidden><b>Guardrails:</b> this is the bridge slide. Make the point explicitly — the reason customization wasn't optional is that autonomy without those rules is the scary version. The PR-not-push design is the single most reassuring fact for nervous stakeholders.</div>
+  </section><section class="slide">
+    <div class="eyebrow">A decision table you'll actually use</div>
+    <h2>If you're thinking… reach for…</h2>
+    <div class="body">
+      <div class="decide">
+        <div class="drow dhead"><div>If you're thinking…</div><div>Reach for…</div></div>
+        <div class="drow"><div class="act">"I want to drive a multi-step change and steer as it goes."</div><div class="reach">Agent mode (IDE)</div></div>
+        <div class="drow"><div class="act">"A well-scoped backlog issue I'd rather not do myself."</div><div class="reach cloud">Cloud agent — assign Copilot</div></div>
+        <div class="drow"><div class="act">"Tech debt / 'nice to have' I'd never find time to start."</div><div class="reach cloud">Cloud agent on an issue</div></div>
+        <div class="drow"><div class="act">"Understand how this codebase works before any code."</div><div class="reach cloud">Cloud agent — research &amp; plan</div></div>
+        <div class="drow"><div class="act">"Fix this code-scanning alert (and others like it)."</div><div class="reach cloud">Cloud agent via security campaign</div></div>
+        <div class="drow"><div class="act">"One change spanning three repositories."</div><div class="reach none">Neither — split per repo</div></div>
+        <div class="drow"><div class="act">"A task that genuinely needs hours of continuous work."</div><div class="reach none">Break it down (59-min cap)</div></div>
+      </div>
+    </div>
+    <div class="note" hidden><b>The lookup slide:</b> don't read every row — let them photograph it. The two red rows matter most: they teach people to <i>shape</i> work for the agent rather than fight its limits.</div>
+  </section><section class="slide">
+<div class="eyebrow">THE WHOLE THING, IN ONE LINE</div>
+<h2>Land on GitHub. Set it up once. It pays you back every PR.</h2>
+<p class="lead">Git is unchanged. Customization makes Copilot yours. Code review is the gate. Autonomy does the chores — a human still owns the merge.</p>
+<div class="body"><div class="three-col">
+<div class="card"><h3>1 · Re-point one repo</h3><p style="color:var(--muted)">Push, open a PR, request Copilot review.</p></div>
+<div class="card"><h3>2 · Write 15 lines of rules</h3><p style="color:var(--muted)">copilot-instructions.md. Watch the output change.</p></div>
+<div class="card"><h3>3 · Assign one issue</h3><p style="color:var(--muted)">Hand Copilot a backlog task; review its PR.</p></div>
+</div></div></section><section class="slide title-slide" style="text-align:center;align-items:center">
+<h1 style="font-size:72px">Thank you</h1></section>
+</div>
+<div style="position:fixed;bottom:18px;right:26px;color:var(--muted);font-size:13px" class="counter"></div>
+<div class="dots"></div>
+<script>
+const ss=[...document.querySelectorAll('.slide')];let i=0;
+ss.forEach(s=>s.classList.remove('active'));
+const dots=document.querySelector('.dots');
+ss.forEach((_,k)=>{const d=document.createElement('span');d.className='dot';d.onclick=e=>{e.stopPropagation();show(k);};dots.appendChild(d);});
+const dd=[...dots.children];
+function show(n){ss[i].classList.remove('active');i=(n+ss.length)%ss.length;ss[i].classList.add('active');ss[i].querySelectorAll('.fragment').forEach(f=>f.classList.add('revealed'));dd.forEach((d,k)=>d.classList.toggle('on',k===i));document.querySelector('.counter').textContent=(i+1)+' / '+ss.length;}
+document.addEventListener('keydown',e=>{if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();show(i+1);}if(['ArrowLeft','PageUp'].includes(e.key))show(i-1);});
+document.addEventListener('click',e=>{if(e.clientX < window.innerWidth*0.2){show(i-1);}else{show(i+1);}});
+show(0);
+</script></body></html>
