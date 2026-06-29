@@ -176,9 +176,10 @@
   .takeaway b { color: var(--accent-3); }
 
   .sub-lbl {
-    font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
-    margin: 4px 0 12px; font-weight: 600;
+    font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--accent-2);
+    margin: 4px 0 12px; font-weight: 700;
   }
+  .sub-lbl.up { color: var(--purple); }
 
   /* ---------- Decision table ---------- */
   .decide { width: 100%; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
@@ -1545,10 +1546,14 @@
 .ag-n{flex:none;width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font-size:24px;font-weight:700}
 .ag-t{font-size:26px;font-weight:700;color:var(--text)}
 .ag-s{margin-left:auto;color:var(--muted);font-size:18px;letter-spacing:.02em}
-.dots{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:50;flex-wrap:wrap;justify-content:center;max-width:80%}
+.dots{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:60vw}
 .dots .dot{width:9px;height:9px;border-radius:50%;background:#30363d;cursor:pointer;transition:all .2s}
 .dots .dot:hover{background:#8b949e}
 .dots .dot.on{background:#f85149;width:22px;border-radius:5px}
+.navbar{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:50}
+.navbtn{background:#161b22;border:1px solid #30363d;color:#e6edf3;border-radius:8px;padding:7px 16px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.navbtn:hover{background:#1c2333;border-color:#58a6ff}
+.navbtn:disabled{opacity:.35;cursor:default}
 .cheat3 .drow{grid-template-columns:1.1fr 1.1fr 1.4fr !important}
 .guards{align-content:start}.guard{align-self:start}
 .grid2{grid-auto-rows:auto !important;align-content:start}.tcard{align-self:start;justify-content:flex-start !important}
@@ -1797,7 +1802,7 @@
       </div>
       <div class="card" style="border-color:rgba(188,140,255,.4);">
         <h3><span class="ico" style="background:rgba(188,140,255,.14);border-color:rgba(188,140,255,.3);">⬆️</span> The upgrade: Rulesets</h3>
-        <div class="sub-lbl">GitHub only · new capability ADO didn't have</div>
+        <div class="sub-lbl up">GitHub only · new capability ADO didn't have</div>
         <ul class="clean">
           <li><b>Org-wide, layered rules</b> — apply one policy across many repos at once</li>
           <li><b>Evaluate / "dry-run" mode</b> before you enforce</li>
@@ -2377,7 +2382,7 @@ pull requests.</div>
 <h1 style="font-size:72px">Thank you</h1></section>
 </div>
 <div style="position:fixed;bottom:18px;right:26px;color:var(--muted);font-size:13px" class="counter"></div>
-<div class="dots"></div>
+<div class="navbar"><button class="navbtn" id="prevBtn">‹ Prev</button><div class="dots"></div><button class="navbtn" id="nextBtn">Next ›</button></div>
 <script>
 const ss=[...document.querySelectorAll('.slide')];let i=0;
 ss.forEach(s=>s.classList.remove('active'));
@@ -2386,6 +2391,7 @@ ss.forEach((_,k)=>{const d=document.createElement('span');d.className='dot';d.on
 const dd=[...dots.children];
 function show(n){ss[i].classList.remove('active');i=(n+ss.length)%ss.length;ss[i].classList.add('active');ss[i].querySelectorAll('.fragment').forEach(f=>f.classList.add('revealed'));dd.forEach((d,k)=>d.classList.toggle('on',k===i));document.querySelector('.counter').textContent=(i+1)+' / '+ss.length;}
 document.addEventListener('keydown',e=>{if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();show(i+1);}if(['ArrowLeft','PageUp'].includes(e.key))show(i-1);});
-document.addEventListener('click',e=>{if(e.clientX < window.innerWidth*0.2){show(i-1);}else{show(i+1);}});
+document.getElementById('prevBtn').onclick=e=>{e.stopPropagation();show(i-1);};
+document.getElementById('nextBtn').onclick=e=>{e.stopPropagation();show(i+1);};
 show(0);
 </script></body></html>
