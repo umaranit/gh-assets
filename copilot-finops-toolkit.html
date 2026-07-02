@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GitHub Copilot FinOps Toolkit</title>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --ink: #1f2933;
+    --muted: #647084;
+    --line: #e3e8ef;
+    --brand: #4f6bed;
+    --brand-dark: #3a51c4;
+    --good: #1a7f52;
+    --good-bg: #e7f4ec;
+    --warn: #9a6a00;
+    --warn-bg: #fdf3e0;
+    --bad: #b42318;
+    --bad-bg: #fdeceb;
+    --shadow: 0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  header {
+    background: linear-gradient(135deg, #3a51c4 0%, #4f6bed 60%, #6d86f2 100%);
+    color: #fff;
+    padding: 28px 24px;
+  }
+  header .wrap { max-width: 1080px; margin: 0 auto; }
+  header h1 { margin: 0 0 6px; font-size: 26px; font-weight: 650; }
+  header p { margin: 0; opacity: .92; font-size: 15px; }
+  .container { max-width: 1080px; margin: 0 auto; padding: 24px; }
+  nav.tabs {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    position: sticky; top: 0; z-index: 5;
+    background: var(--bg); padding: 12px 0; margin-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  nav.tabs button {
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    padding: 8px 14px; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 550;
+    transition: all .15s ease;
+  }
+  nav.tabs button:hover { color: var(--ink); border-color: #c7d0dc; }
+  nav.tabs button:focus-visible { outline: 3px solid rgba(79, 107, 237, .35); outline-offset: 2px; }
+  nav.tabs button.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+  section.panel { display: none; animation: fade .2s ease; }
+  section.panel.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px);} to {opacity:1; transform:none;} }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 22px; margin-bottom: 18px; box-shadow: var(--shadow); overflow-x: auto;
+  }
+  .card h2 { margin: 0 0 4px; font-size: 19px; }
+  .card h3 { margin: 18px 0 8px; font-size: 15px; color: var(--brand-dark); }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #f0f3f8; font-weight: 600; font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  code { background: #eef1f6; padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .pill.good { background: var(--good-bg); color: var(--good); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.bad { background: var(--bad-bg); color: var(--bad); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .callout { border-left: 4px solid var(--brand); background: #eef1fc; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 14px; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-bg); }
+  .callout.bad { border-color: var(--bad); background: var(--bad-bg); }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 16px; }
+  .summary-item { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: #f8fafc; }
+  .summary-item .label { display: block; color: var(--muted); font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .03em; }
+  .summary-item .value { display: block; margin-top: 6px; font-size: 14px; font-weight: 650; line-height: 1.45; }
+  .owner-tag { display: inline-block; padding: 3px 8px; border-radius: 999px; background: #eef1fc; color: var(--brand-dark); font-size: 12px; font-weight: 650; white-space: nowrap; }
+  .budget-family { border: 1px solid var(--line); border-radius: 10px; padding: 16px; background: #f8fafc; }
+  .budget-family h3 { margin-top: 0; }
+  .budget-family .lead { margin: 0 0 10px; font-size: 15px; font-weight: 650; color: var(--ink); }
+  .budget-family .note { margin: 0; color: var(--muted); font-size: 13px; }
+  .runbook-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 16px; }
+  .runbook-card { border: 1px solid var(--line); border-radius: 10px; padding: 16px; background: #f8fafc; }
+  .runbook-card.wide { grid-column: 1 / -1; }
+  .runbook-card h3 { margin-top: 0; }
+  .runbook-card .goal { margin: 0 0 10px; font-size: 14px; font-weight: 650; color: var(--ink); }
+  .runbook-card ul { margin: 0; padding-left: 20px; }
+  .tight { margin-top: 8px; margin-bottom: 0; padding-left: 20px; }
+  .tight li { margin-bottom: 6px; }
+  .details-panel { margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; overflow: hidden; }
+  .details-panel summary { cursor: pointer; padding: 11px 14px; font-weight: 650; color: var(--brand-dark); list-style: none; }
+  .details-panel summary::-webkit-details-marker { display: none; }
+  .details-panel summary::after { content: "+"; float: right; color: var(--muted); }
+  .details-panel[open] summary::after { content: "−"; }
+  .details-panel .details-body { border-top: 1px solid var(--line); padding: 14px; }
+  .details-panel h4 { margin: 0 0 6px; font-size: 14px; color: var(--ink); }
+  .details-panel p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+  .details-panel ol { margin: 0; padding-left: 20px; }
+  .details-panel li { margin-bottom: 10px; }
+  .guide-layout { display: grid; grid-template-columns: minmax(0, .95fr) minmax(320px, 1.05fr); gap: 18px; align-items: start; }
+  .guide-steps { min-width: 0; }
+  .guide-media { display: grid; gap: 12px; min-width: 0; }
+  .shot-ref { display: inline-block; margin-left: 4px; color: var(--brand-dark); font-size: 12px; font-weight: 650; white-space: nowrap; }
+  .guide-shot { margin: 0; border: 1px solid var(--line); border-radius: 10px; background: #f8fafc; padding: 10px; }
+  .guide-shot .shot-label { display: inline-block; margin-bottom: 8px; padding: 2px 8px; border-radius: 999px; background: #eef1fc; color: var(--brand-dark); font-size: 12px; font-weight: 700; }
+  .guide-shot img { display: block; max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); }
+  .guide-shot figcaption { margin-top: 8px; color: var(--muted); font-size: 12px; }
+
+  /* Print / Export */
+  .btn-print {
+    float: right; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line);
+    background: #fff; color: var(--muted); font-size: 13px; cursor: pointer;
+  }
+  .btn-print:hover { background: #f8fafc; color: var(--ink); }
+
+  /* Visual Waterfall */
+  .wf-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px; }
+  .wf-step {
+    width: 100%; max-width: 500px; padding: 12px 16px; border: 2px solid var(--line);
+    border-radius: 10px; text-align: center; position: relative; font-size: 14px;
+  }
+  .wf-step::after {
+    content: "↓"; position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+    color: var(--muted); font-weight: bold;
+  }
+  .wf-step:last-child::after { content: ""; }
+  .wf-step.check { border-color: var(--brand); background: #f0f4ff; font-weight: 600; }
+  .wf-step.stop { border-color: var(--bad); color: var(--bad); background: var(--bad-bg); }
+  .wf-step.go { border-color: var(--good); color: var(--good); background: var(--good-bg); }
+  .wf-step.warn { border: 2px dashed var(--warn); color: var(--warn); padding: 10px; border-radius: 10px; width: 100%; max-width: 500px; font-size: 14px; }
+
+  .step { display: flex; gap: 14px; margin-bottom: 15px; }
+  .step .n { flex: 0 0 28px; height: 28px; border-radius: 999px; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+  .step .body { flex: 1; min-width: 0; }
+  @media print {
+    .tabs, .btn-print, header p { display: none !important; }
+    body { background: #fff; }
+    .card { box-shadow: none; border-color: #000; }
+    section.panel { display: block !important; opacity: 1 !important; page-break-after: always; }
+  }
+  @media (max-width: 780px){ .grid2, .runbook-grid, .guide-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>GitHub Copilot &mdash; FinOps Toolkit</h1>
+    <p>Understand the model &middot; size your budgets &middot; respond to incidents. Built for FinOps &amp; license admins.</p>
+  </div>
+</header>
+
+<div class="container">
+  <nav class="tabs" role="tablist" aria-label="FinOps toolkit sections">
+    <button id="tab-model" class="active" data-tab="model" type="button" role="tab" aria-selected="true" aria-controls="model">Mental model</button>
+    <button id="tab-budgets" data-tab="budgets" type="button" role="tab" aria-selected="false" aria-controls="budgets" tabindex="-1">Budget controls</button>
+    <button id="tab-runbook" data-tab="runbook" type="button" role="tab" aria-selected="false" aria-controls="runbook" tabindex="-1">Incident runbook</button>
+    <button id="tab-levers" data-tab="levers" type="button" role="tab" aria-selected="false" aria-controls="levers" tabindex="-1">Cost levers</button>
+    <button id="tab-checklist" data-tab="checklist" type="button" role="tab" aria-selected="false" aria-controls="checklist" tabindex="-1">Prevention checklist</button>
+  </nav>
+
+  <!-- MENTAL MODEL -->
+  <section class="panel active" id="model" role="tabpanel" aria-labelledby="tab-model">
+    <button id="printKit" class="btn-print" type="button">Print Full Kit</button>
+    <div class="card">
+      <h2>Executive summary</h2>
+      <p class="sub">Leadership view: what is predictable, what can change, and how to stay in control.</p>
+      <div class="summary-grid">
+        <div class="summary-item"><span class="label">Fixed cost</span><span class="value">Per-user license fees. Predictable every month.</span></div>
+        <div class="summary-item"><span class="label">Variable cost</span><span class="value">Extra AI usage beyond what licenses include.</span></div>
+        <div class="summary-item"><span class="label">Main risk</span><span class="value">No cap can create surprise bills. Limits set too low can stop developer work.</span></div>
+        <div class="summary-item"><span class="label">Primary control</span><span class="value">Set spend caps, auto-stop at the cap, and send alerts to accountable teams.</span></div>
+        <div class="summary-item"><span class="label">Default setup</span><span class="value">Standard user limit + approved power-user limits + enterprise cap.</span></div>
+      </div>
+      <div class="callout warn"><strong>Executive takeaway:</strong> Copilot spend is controllable when limits, caps, alerts, and owners are set before usage scales.</div>
+    </div>
+    <div class="card">
+      <h2>The one mental model</h2>
+      <p class="sub">Copilot usage-based billing combines fixed monthly seat fees with shared AI credit pools.</p>
+      <table>
+        <tr><th>Concept</th><th>Definition & Impact</th></tr>
+        <tr><td><strong>Seat / License</strong></td><td>Fixed monthly cost ($19 Business / $39 Enterprise). Required for access.</td></tr>
+        <tr><td><strong>Included Credits</strong></td><td>Monthly AI credit allowance granted by each active seat.</td></tr>
+        <tr><td><strong>The Shared Pool</strong></td><td>Aggregation of all seat credits into a single pot for the entire enterprise or organization.</td></tr>
+        <tr><td><strong>Metered Usage</strong></td><td>Overage charges at <code>$0.01 / AI credit</code> once the shared pool is exhausted.</td></tr>
+        <tr><td><strong>Base Features</strong></td><td>Code completions + next-edit suggestions are included in seat fees and do not consume AI credits.</td></tr>
+        <tr><td><strong>Governing Budgets</strong></td><td>Spending caps at user, cost center, organization, or enterprise level to control metered risk.</td></tr>
+        <tr><td><strong>Billing Cycle</strong></td><td>Pool resets <strong>00:00 UTC, 1st of the month</strong> (credits do not roll over).</td></tr>
+      </table>
+      <div class="callout">
+        <strong>The core principle:</strong> You pay a fixed seat fee to fund a shared credit bucket. 
+        Requests are deducted from the bucket until empty, then billed as metered overage <em>unless a budget stops it</em>.
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>What costs money</h2>
+        <table>
+          <tr><th>Feature</th><th>Consumes AI credits?</th></tr>
+          <tr><td>Code completions (ghost text)</td><td><span class="pill good">No</span></td></tr>
+          <tr><td>Next edit suggestions</td><td><span class="pill good">No</span></td></tr>
+          <tr><td>Copilot Chat</td><td><span class="pill bad">Yes</span></td></tr>
+          <tr><td>Copilot CLI</td><td><span class="pill bad">Yes</span></td></tr>
+          <tr><td>Coding / cloud agent</td><td><span class="pill bad">Yes</span></td></tr>
+          <tr><td>Spaces, Spark, 3rd-party agents</td><td><span class="pill bad">Yes</span></td></tr>
+        </table>
+        <p class="sub" style="margin-top:10px">Memory aid: <em>&ldquo;Typing help uses no AI credits; thinking/agent work is metered.&rdquo;</em></p>
+      </div>
+      <div class="card">
+        <h2>Why the same task costs different amounts</h2>
+        <p class="sub">Copilot cost changes based on how much work the AI has to do.</p>
+        <table>
+          <tr><th>What changes cost?</th><th>Plain-English meaning</th></tr>
+          <tr><td><strong>Model selected</strong></td><td>More powerful models cost more. Use them for harder work, not every task.</td></tr>
+          <tr><td><strong>Amount of context</strong></td><td>Asking Copilot to read more files, history, or pasted text uses more credits.</td></tr>
+          <tr><td><strong>Size of the answer</strong></td><td>Longer generated answers cost more than short answers.</td></tr>
+        </table>
+        <div class="callout warn"><strong>Simple rule:</strong> Bigger model + more files + longer answer = higher cost. Keep routine work small and use powerful models only when they add value.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUDGET CONTROLS -->
+  <section class="panel" id="budgets" role="tabpanel" aria-labelledby="tab-budgets" hidden>
+    <div class="card">
+      <h2>Budget controls</h2>
+      <p class="sub">Two families. Learn the split and the rest follows.</p>
+      <table>
+        <tr><th>Budget</th><th>Caps what</th><th>Active when</th><th>Hard stop?</th></tr>
+        <tr><td><strong>Universal user-level</strong></td><td>Each user's total credit use</td><td>Always (pool + metered)</td><td><span class="pill good">Always</span></td></tr>
+        <tr><td><strong>Cost-center user-level</strong></td><td>Each member's total use (per cost center)</td><td>Always</td><td><span class="pill good">Always</span></td></tr>
+        <tr><td><strong>Individual user-level</strong></td><td>One specific user's total use</td><td>Always</td><td><span class="pill good">Always</span></td></tr>
+        <tr><td><strong>Cost center budget</strong></td><td>A team's metered charges</td><td>Metered phase only</td><td><span class="pill warn">Only if "Stop usage" is enabled</span></td></tr>
+        <tr><td><strong>Organization budget</strong></td><td>An organization's metered charges</td><td>Metered phase only</td><td><span class="pill warn">Only if "Stop usage" is enabled</span></td></tr>
+        <tr><td><strong>Enterprise budget</strong></td><td>All metered charges (failsafe)</td><td>Metered phase only</td><td><span class="pill warn">Only if "Stop usage" is enabled</span></td></tr>
+      </table>
+      <div class="grid2" style="margin-top:16px">
+        <div class="budget-family">
+          <h3>User-level budgets</h3>
+          <p class="lead">Controls how much each person can use in total.</p>
+          <p class="note">Applies from the first credit used, whether credits come from the included pool or paid overage. When the person reaches the limit, usage stops.</p>
+        </div>
+        <div class="budget-family">
+          <h3>Group budgets (cost center / organization / enterprise)</h3>
+          <p class="lead">Controls how much paid overage a team, organization, or enterprise can spend.</p>
+          <p class="note">Only matters after included credits are used up. It blocks usage only when &ldquo;Stop usage&rdquo; is enabled.</p>
+        </div>
+      </div>
+      <div class="callout bad"><strong>Important default:</strong> &ldquo;Stop usage when budget limit is reached&rdquo; is <strong>off by default</strong> on group budgets. If this is not enabled, charges can continue after the budget threshold is reached.</div>
+      <h3>Precedence rules</h3>
+      <ul class="tight">
+        <li>Most specific user-level wins: <strong>Individual &rarr; Cost-center user-level &rarr; Universal</strong>.</li>
+        <li><strong>Lowest remaining headroom wins</strong> &mdash; even the enterprise budget can block a user who still has personal room.</li>
+        <li>Any <strong>$0 budget</strong> = immediate block for whoever it covers.</li>
+        <li>Raising a group budget does <strong>not</strong> unblock someone who hit their user-level budget (and vice versa).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>How one request flows (The Waterfall)</h2>
+      <div class="wf-wrap">
+        <div class="wf-step check">1. User-level budget exceeded?</div>
+        <div class="wf-step stop">YES: Blocked (Hard Stop)</div>
+        <div class="wf-step check">NO: Shared pool has credits?</div>
+        <div class="wf-step go">YES: Served from included pool</div>
+        <div class="wf-step check">NO: &ldquo;AI Credit Paid Usage&rdquo; policy ON?</div>
+        <div class="wf-step stop">NO: Blocked until next cycle</div>
+        <div class="wf-step check">YES: Cost center / organization / enterprise budget?</div>
+        <div class="wf-step go">REMAINING: Metered ($0.01 / credit)</div>
+        <div class="wf-step stop">EXHAUSTED + &ldquo;Stop&rdquo; ON: Blocked</div>
+        <div class="wf-step warn">EXHAUSTED + &ldquo;Stop&rdquo; OFF: Unlimited Overage</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RUNBOOK -->
+  <section class="panel" id="runbook" role="tabpanel" aria-labelledby="tab-runbook" hidden>
+    <div class="card">
+      <h2>Incident runbook &mdash; users blocked or credits exhausted</h2>
+      <p class="sub">Goal: restore critical developer work without opening unlimited spend.</p>
+      <div class="callout bad"><strong>Golden rule:</strong> Do not remove caps or turn off hard stops to resolve the incident quickly. First identify what limit was hit, then unblock only the users or teams that need it.</div>
+
+      <div class="runbook-grid">
+        <div class="runbook-card">
+          <h3>1. Confirm the blocker</h3>
+          <p class="goal">Find out what actually stopped usage.</p>
+          <ul class="tight">
+            <li><strong>Pool empty:</strong> included credits are used up.</li>
+            <li><strong>User limit hit:</strong> one person reached their cap.</li>
+            <li><strong>Group cap hit:</strong> team, organization, or enterprise overage cap stopped usage.</li>
+          </ul>
+        </div>
+        <div class="runbook-card">
+          <h3>2. Communicate immediately</h3>
+          <p class="goal">Reduce panic while the fix is being prepared.</p>
+          <ul class="tight">
+            <li>Tell developers: code completions and next-edit suggestions still work.</li>
+            <li>Tell managers: max exposure is controlled by the overage cap.</li>
+            <li>Share an ETA for the first usage readout.</li>
+          </ul>
+        </div>
+        <div class="runbook-card wide">
+          <h3>3. Find the usage driver</h3>
+          <p class="goal">Identify whether this is normal demand or a spike.</p>
+          <ul class="tight">
+            <li><strong>Start with AI usage:</strong> set the Time Frame, then use Filter and Group to find top consumers.</li>
+            <li><strong>Find the pattern:</strong> check whether spend is concentrated in a few users, one organization, one cost center, or one model.</li>
+            <li><strong>Export evidence when needed:</strong> use Get usage report for date, user, and model detail.</li>
+            <li><strong>Check burn rate:</strong> compare credits used with days elapsed in the billing month. Early-cycle exhaustion signals a usage spike.</li>
+          </ul>
+          <details class="details-panel">
+            <summary>How to check this in practice</summary>
+            <div class="details-body">
+              <div class="guide-layout">
+                <div class="guide-steps">
+                  <h4>Where to start</h4>
+                  <p>Start in GitHub billing and licensing views. Use <strong>AI usage</strong> for usage patterns, then check licensing and organization access for seat context.</p>
+                  <ol>
+                    <li><strong>Open AI usage:</strong> go to <strong>Billing and licensing &rarr; Usage &rarr; AI usage</strong>, then review Copilot usage across licensed users, teams, organizations, or cost centers. <span class="shot-ref">See image 1.</span></li>
+                    <li><strong>Check licensing and access:</strong> in the enterprise, go to <strong>Billing and licensing &rarr; Licensing &rarr; Copilot &rarr; Manage</strong> to confirm license counts and billing context. <span class="shot-ref">See image 2A.</span> For user-level access, open the organization&apos;s <strong>Settings &rarr; Copilot &rarr; Access</strong> page. <span class="shot-ref">See image 2B.</span></li>
+                    <li><strong>Find the top consumers:</strong> on <strong>Billing and licensing &rarr; Usage &rarr; AI usage</strong>, set the <strong>Time Frame</strong>, then use <strong>Filter</strong> and <strong>Group</strong> to identify the highest-consuming users, organizations, cost centers, and models.</li>
+                    <li><strong>Export the evidence:</strong> from <strong>AI usage</strong>, click <strong>Get usage report</strong> to review AI credits by date, user, and model. Use <strong>Metered usage &rarr; Get usage report</strong> only when product/SKU-level billing detail is needed.</li>
+                    <li><strong>Check model mix:</strong> in <strong>AI usage</strong>, group or report by <strong>model</strong> to find which models drive the most credits. Compare high-cost models against the <strong>Models and pricing</strong> reference, then flag routine high-cost usage for engineering review.</li>
+                    <li><strong>Check timing:</strong> on <strong>AI usage</strong>, set <strong>Time Frame</strong> to the current billing month and compare credits used with days elapsed. Early-month exhaustion signals a spike; near month-end usage may be normal demand. Use <strong>Get usage report</strong> for UTC date-level evidence.</li>
+                    <li><strong>Decide action:</strong> increase a budget only when the usage is expected and business-critical. Use <strong>Billing and licensing &rarr; Budgets and alerts</strong> to update the specific user, team, organization, or enterprise budget that was hit. If the usage looks unnecessary, ask engineering or Copilot policy owners to review it first.</li>
+                  </ol>
+                </div>
+                <div class="guide-media">
+                  <figure class="guide-shot">
+                    <span class="shot-label">Image 1 · Open AI usage</span>
+                    <img src="images/img1.png" alt="GitHub Billing and licensing navigation showing Usage expanded and AI usage selected" />
+                    <figcaption>Step 1 reference: Billing and licensing &rarr; Usage &rarr; AI usage.</figcaption>
+                  </figure>
+                  <figure class="guide-shot">
+                    <span class="shot-label">Image 2A · Enterprise licensing</span>
+                    <img src="images/img2.png" alt="GitHub Billing and licensing Licensing page showing Enterprise Cloud consumed licenses and Manage button" />
+                    <figcaption>Step 2 enterprise reference: Billing and licensing &rarr; Licensing &rarr; Copilot &rarr; Manage.</figcaption>
+                  </figure>
+                  <figure class="guide-shot">
+                    <span class="shot-label">Image 2B · Organization access</span>
+                    <img src="images/img3.png" alt="GitHub organization settings sidebar showing Code planning and automation Copilot Access selected" />
+                    <figcaption>Step 2 organization reference: Settings &rarr; Copilot &rarr; Access.</figcaption>
+                  </figure>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+        <div class="runbook-card">
+          <h3>4. Unblock safely</h3>
+          <p class="goal">Restore access without creating a blank check.</p>
+          <ul class="tight">
+            <li>Raise limits only for approved power users or critical teams.</li>
+            <li>Keep enterprise and group caps in place with hard stops enabled.</li>
+            <li>Re-check sizing math before increasing broad limits.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEVERS -->
+  <section class="panel" id="levers" role="tabpanel" aria-labelledby="tab-levers" hidden>
+    <div class="card">
+      <h2>Cost levers (share with engineering)</h2>
+      <p class="sub">Real savings come from behavior + model choice, not just caps.</p>
+      <table>
+        <tr><th>Lever</th><th>Why it works</th></tr>
+        <tr><td>Ask engineering to use <strong>lighter models</strong> for routine work</td><td>Lightweight models cost a fraction of frontier per token</td></tr>
+        <tr><td><strong>Keep context small</strong></td><td>Fewer input tokens; avoids the long-context price tier</td></tr>
+        <tr><td>Don't dump whole repos / history into agents</td><td>Big context + big output = the most expensive pattern</td></tr>
+        <tr><td>Reserve <strong>frontier models</strong> for genuinely hard tasks</td><td>Output tokens dominate cost; use power where it pays off</td></tr>
+        <tr><td>Use included coding suggestions first</td><td>Inline completions and next-edit suggestions are included in the license fee and do not consume AI credits</td></tr>
+        <tr><td><strong>Keep developer tools current</strong></td><td>Updated IDEs and Copilot extensions show usage more accurately and reduce billing confusion</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Money math you'll actually use</h2>
+      <table>
+        <tr><td><code>1 AI credit</code></td><td>= $0.01 USD</td></tr>
+        <tr><td><code>$10 budget</code></td><td>= 1,000 AI credits</td></tr>
+        <tr><td>Included AI credits (Business)</td><td>= seats &times; 1,900 credits</td></tr>
+        <tr><td>Included AI credits (Enterprise)</td><td>= seats &times; 3,900 credits</td></tr>
+        <tr><td>When overage can happen</td><td>When approved user limits are higher than the included credits available.</td></tr>
+        <tr><td>Extra budget to plan</td><td>Set an overage budget for usage that goes beyond the included credits.</td></tr>
+        <tr><td>Highest planned monthly bill</td><td>= license fees + approved overage cap</td></tr>
+      </table>
+      <div class="callout"><strong>Before using this for billing decisions:</strong> Prices and included AI credit allowances can change. Validate against current GitHub Docs and your GitHub agreement.</div>
+      <div class="callout warn"><strong>Common billing interpretation mistake:</strong> 400 Business seats &times; $19 = $7,600 fixed. A $5,000 enterprise budget does <em>not</em> mean a $5,000 total bill &mdash; it means highest planned bill = <strong>$7,600 + $5,000 = $12,600</strong>. The enterprise budget caps extra usage only.</div>
+    </div>
+  </section>
+
+  <!-- CHECKLIST -->
+  <section class="panel" id="checklist" role="tabpanel" aria-labelledby="tab-checklist" hidden>
+    <div class="card">
+      <h2>Prevention checklist</h2>
+      <p class="sub">Complete these controls to reduce future incidents.</p>
+      <table id="checkTable">
+        <tr><th style="width:40px"></th><th style="width:210px">Owner</th><th>Action</th></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Recommended default setup</h2>
+      <div class="step"><div class="n">1</div><div class="body"><strong>Universal user-level budget</strong> set slightly above per-seat value (so pooling still works).</div></div>
+      <div class="step"><div class="n">2</div><div class="body"><strong>Individual user-level budget overrides</strong> for known power users.</div></div>
+      <div class="step"><div class="n">3</div><div class="body"><strong>Enterprise budget</strong> as a metered-charge failsafe.</div></div>
+      <div class="step"><div class="n">4</div><div class="body">&#9989; <strong>Enable "Stop usage when budget limit is reached"</strong> on the enterprise budget.</div></div>
+      <p class="sub" style="margin-top:12px">Scale up: cost centers with users assigned <strong>directly</strong> for predictable, per-team accountability; cost-center user-level budgets to give departments different per-user caps; cost-center exclusion for teams that need independent spend.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+  // Tabs
+  const tabs = Array.from(document.querySelectorAll('nav.tabs button'));
+  const panels = Array.from(document.querySelectorAll('section.panel'));
+  function activateTab(tab) {
+    tabs.forEach(x => {
+      const isActive = x === tab;
+      x.classList.toggle('active', isActive);
+      x.setAttribute('aria-selected', String(isActive));
+      x.tabIndex = isActive ? 0 : -1;
+    });
+    panels.forEach(p => {
+      const isActive = p.id === tab.dataset.tab;
+      p.classList.toggle('active', isActive);
+      p.hidden = !isActive;
+    });
+  }
+  tabs.forEach((b, index) => {
+    b.addEventListener('click', () => activateTab(b));
+    b.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      let nextIndex = index;
+      if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+      if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+      if (event.key === 'Home') nextIndex = 0;
+      if (event.key === 'End') nextIndex = tabs.length - 1;
+      tabs[nextIndex].focus();
+      activateTab(tabs[nextIndex]);
+    });
+  });
+
+  // Print all tabs and expanded details, then restore the screen state.
+  const printButton = document.getElementById('printKit');
+  let closedDetailsBeforePrint = [];
+  let printPrepared = false;
+  function preparePrint() {
+    if (printPrepared) return;
+    printPrepared = true;
+    panels.forEach(p => {
+      p.hidden = false;
+      p.classList.add('active');
+    });
+    closedDetailsBeforePrint = Array.from(document.querySelectorAll('details:not([open])'));
+    document.querySelectorAll('details').forEach(detail => { detail.open = true; });
+  }
+  function restoreAfterPrint() {
+    closedDetailsBeforePrint.forEach(detail => { detail.open = false; });
+    closedDetailsBeforePrint = [];
+    printPrepared = false;
+    const activeTab = tabs.find(tab => tab.classList.contains('active')) || tabs[0];
+    activateTab(activeTab);
+  }
+  printButton.addEventListener('click', () => {
+    preparePrint();
+    window.print();
+  });
+  window.addEventListener('beforeprint', preparePrint);
+  window.addEventListener('afterprint', restoreAfterPrint);
+
+  // Checklist
+  const checks = [
+    { owner: 'GitHub Enterprise admin', action: 'Enterprise budget set with "Stop usage when budget limit is reached" enabled' },
+    { owner: 'GitHub Enterprise admin', action: 'Universal user-level budget set above per-seat value (pooling works, no single user drains pool)' },
+    { owner: 'Engineering manager', action: 'Individual user-level budget overrides approved for verified power users only' },
+    { owner: 'FinOps team', action: 'Sizing math validated: group budgets ≥ (maximum allowed user-level budget usage − included AI credits)' },
+    { owner: 'GitHub Enterprise admin', action: 'Cost centers created with users assigned directly (predictable enforcement)' },
+    { owner: 'GitHub Enterprise admin', action: 'No user holds licenses from multiple organizations (avoids random billing organization each cycle)' },
+    { owner: 'Azure billing owner', action: 'GitHub budget alerts configured; Azure cost alerts reviewed as daily/lagging invoice controls' },
+    { owner: 'Engineering manager', action: 'IDEs & Copilot extensions on minimum versions (accurate meters)' },
+    { owner: 'FinOps team', action: 'Weekly usage review by user, model, organization, and cost center' },
+    { owner: 'Procurement / finance', action: 'Chargeback/showback model agreed with teams via cost centers' }
+  ];
+  const ct = document.getElementById('checkTable');
+  checks.forEach((c, i) => {
+    const tr = document.createElement('tr');
+    const checkCell = document.createElement('td');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = `chk${i}`;
+    checkCell.appendChild(checkbox);
+
+    const ownerCell = document.createElement('td');
+    const ownerTag = document.createElement('span');
+    ownerTag.className = 'owner-tag';
+    ownerTag.textContent = c.owner;
+    ownerCell.appendChild(ownerTag);
+
+    const actionCell = document.createElement('td');
+    const label = document.createElement('label');
+    label.htmlFor = checkbox.id;
+    label.textContent = c.action;
+    actionCell.appendChild(label);
+
+    tr.append(checkCell, ownerCell, actionCell);
+    ct.appendChild(tr);
+  });
+</script>
+</body>
+</html>
