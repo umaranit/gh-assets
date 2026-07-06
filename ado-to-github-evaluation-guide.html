@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADO to GitHub: Engineering Team Benefits</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-2: #1c2129;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #2f81f7;
+      --accent-2: #a371f7;
+      --green: #3fb950;
+      --ado: #0078d4;
+      --gh: #f0f6fc;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, #16324f 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 80px 24px 56px;
+    }
+    .eyebrow {
+      display: inline-block;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(47, 129, 247, 0.12);
+      border: 1px solid rgba(47, 129, 247, 0.35);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 18px;
+    }
+    header h1 .grad {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .flow {
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 22px;
+      box-shadow: var(--shadow);
+    }
+    .flow .chip { font-weight: 700; font-size: 17px; }
+    .flow .ado { color: #4aa3ff; }
+    .flow .gh { color: var(--gh); }
+    .flow .arrow { color: var(--accent-2); font-size: 22px; }
+
+    .hero-points {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 28px auto 0;
+      max-width: 850px;
+    }
+    .hero-points span {
+      color: var(--text);
+      background: rgba(22, 27, 34, 0.74);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Sections */
+    section { padding: 32px 0; }
+    .section-title {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--text-muted);
+      margin-bottom: 36px;
+    }
+
+    /* Benefit cards grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 26px;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
+    }
+    .card .icon {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px;
+      font-size: 24px;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, rgba(47,129,247,0.18), rgba(163,113,247,0.18));
+      border: 1px solid var(--border);
+    }
+    .card h3 { font-size: 18px; margin-bottom: 8px; }
+    .card p { color: var(--text-muted); font-size: 15px; }
+
+    /* Outcome cards */
+    .outcomes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+    .outcome {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(22, 27, 34, 0.96), rgba(22, 27, 34, 0.78));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .outcome:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
+    }
+    .outcome::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -70px auto;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(47, 129, 247, 0.24), transparent 70%);
+      pointer-events: none;
+    }
+    .outcome .kicker {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .outcome h3 { font-size: 19px; margin-bottom: 10px; }
+    .outcome p { color: var(--text-muted); font-size: 15px; margin-bottom: 16px; }
+    .outcome .impact {
+      display: inline-block;
+      margin-top: auto;
+      align-self: flex-start;
+      color: #7ee787;
+      background: rgba(63, 185, 80, 0.10);
+      border: 1px solid rgba(63, 185, 80, 0.32);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Role impact */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .role {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+    .role h3 { font-size: 18px; margin-bottom: 12px; }
+    .role .promise {
+      display: inline-block;
+      color: var(--green);
+      background: rgba(63, 185, 80, 0.10);
+      border: 1px solid rgba(63, 185, 80, 0.32);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .role ul { list-style: none; display: grid; gap: 10px; }
+    .role li {
+      color: var(--text-muted);
+      font-size: 14px;
+      padding-left: 24px;
+      position: relative;
+    }
+    .role li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--green);
+      font-weight: 800;
+    }
+    .role li strong { color: var(--text); }
+    .docs-note {
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .docs-note strong { color: var(--text); }
+
+    /* GitHub-native differentiators */
+    .native-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+    }
+    .native-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .native-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+    .native-card .label {
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .native-card h3 { font-size: 17px; margin-bottom: 8px; }
+    .native-card p { color: var(--text-muted); font-size: 14px; }
+
+    /* What to weigh (honest tradeoffs) */
+    .weigh-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+    .weigh-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid #d29922;
+      border-radius: 14px;
+      padding: 22px;
+    }
+    .weigh-card .consider {
+      display: inline-block;
+      color: #e3b341;
+      background: rgba(210, 153, 34, 0.12);
+      border: 1px solid rgba(210, 153, 34, 0.35);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .weigh-card h3 { font-size: 17px; margin-bottom: 8px; }
+    .weigh-card p { color: var(--text-muted); font-size: 14px; }
+    .weigh-card .handle {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .weigh-card .handle strong { color: var(--green); }
+
+    /* Comparison table */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; }
+    thead th {
+      text-align: left;
+      padding: 18px 20px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    thead th.gh-col { color: var(--gh); }
+    thead th.ado-col { color: #4aa3ff; }
+    tbody td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody td.feature { font-weight: 600; }
+    tbody td.ado-cell { color: var(--text-muted); }
+    tbody td.gh-cell { color: var(--text); }
+    .check { color: var(--green); font-weight: 700; }
+
+    /* Gap list */
+    .gap-list { display: flex; flex-direction: column; gap: 18px; }
+    .gap-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .gap-item:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+    .gap-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 24px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .gap-num {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .gap-head h3 { font-size: 18px; }
+    .gap-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .gap-col { padding: 22px 24px; }
+    .gap-col.gap { border-right: 1px solid var(--border); }
+    .gap-col p { color: var(--text-muted); font-size: 15px; }
+    .gap-col p strong { color: var(--text); }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .tag-gap {
+      color: #a9c7ff;
+      background: rgba(74, 163, 255, 0.10);
+      border: 1px solid rgba(74, 163, 255, 0.30);
+    }
+    .tag-fix {
+      color: #7ee787;
+      background: rgba(63, 185, 80, 0.12);
+      border: 1px solid rgba(63, 185, 80, 0.35);
+    }
+    @media (max-width: 640px) {
+      .gap-body { grid-template-columns: 1fr; }
+      .gap-col.gap { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 8px;
+    }
+    .stat {
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 20px;
+    }
+    .stat .num {
+      font-size: 40px;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--green), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat .label { color: var(--text-muted); font-size: 14px; margin-top: 6px; }
+
+    /* Migration path */
+    .path {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      position: relative;
+    }
+    .step span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      font-weight: 800;
+    }
+    .step h3 { font-size: 17px; margin-bottom: 8px; }
+    .step p { color: var(--text-muted); font-size: 14px; }
+    @media (max-width: 860px) {
+      .path { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .path { grid-template-columns: 1fr; }
+    }
+
+    /* CTA */
+    .cta {
+      text-align: center;
+      background: linear-gradient(135deg, rgba(47,129,247,0.12), rgba(163,113,247,0.12));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 32px;
+      margin: 40px 0 64px;
+    }
+    .cta h2 { font-size: 28px; margin-bottom: 12px; }
+    .cta p { color: var(--text-muted); margin-bottom: 24px; }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 10px;
+      transition: background 0.2s ease;
+    }
+    .btn:hover { background: #4a92f8; }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <span class="eyebrow">Developer Experience</span>
+      <h1>Evaluating a Move from<br /><span class="grad">Azure DevOps to GitHub</span></h1>
+      <p>An honest look at where GitHub is meaningfully different, what your teams gain, and what to weigh before you commit — so you can make the call with eyes open.</p>
+      <div class="flow">
+        <span class="chip ado">Azure DevOps</span>
+        <span class="arrow">&#10230;</span>
+        <span class="chip gh">GitHub</span>
+      </div>
+      <div class="hero-points" aria-label="Primary migration benefits">
+        <span>Faster developer onboarding</span>
+        <span>Modern pull request collaboration</span>
+        <span>Integrated security and compliance</span>
+        <span>AI-assisted engineering workflows</span>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">The Big Picture</h2>
+      <p class="section-sub">Moving from ADO to GitHub is more than a repository migration — it is a shift toward a connected, AI-assisted engineering platform where planning, coding, reviews, security, and delivery happen in one workflow.</p>
+      <div class="outcomes">
+        <div class="outcome">
+          <div class="kicker">Flow</div>
+          <h3>From issue to open PR, without losing context</h3>
+          <p>Pick up an issue, spin up a preconfigured Codespace, ask Copilot for context, and push a branch — while tests, reviews, and checks gather on the very same pull request.</p>
+          <span class="impact">One connected flow</span>
+        </div>
+        <div class="outcome">
+          <div class="kicker">Review</div>
+          <h3>The pull request becomes your control room</h3>
+          <p>Code owners, required checks, Copilot review, code quality findings, security alerts, deployment status, and the merge queue all land in one view — so every merge decision is made with full context.</p>
+          <span class="impact">Fewer surprises after merge</span>
+        </div>
+        <div class="outcome">
+          <div class="kicker">Security</div>
+          <h3>Catch and fix risk while the code is fresh</h3>
+          <p>Secret, dependency, and CodeQL findings surface right in the PR — and Copilot Autofix drafts the fix — so risk is resolved before merge instead of filed away as tech debt.</p>
+          <span class="impact">Security that ships with the code</span>
+        </div>
+        <div class="outcome">
+          <div class="kicker">Scale</div>
+          <h3>Turn great team habits into paved roads</h3>
+          <p>Org-wide rulesets, reusable Actions, workflow templates, and dev containers let platform teams codify best practices once and roll them out to every repo.</p>
+          <span class="impact">Consistency without the red tape</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">GitHub-Native Differentiators by Role</h2>
+      <p class="section-sub">These are practical GitHub capabilities that give teams a different day-to-day experience than ADO — especially around cloud dev environments, pull requests, security, automation, and AI-assisted work.</p>
+      <div class="role-grid">
+        <div class="role">
+          <h3>Developers</h3>
+          <span class="promise">You get GitHub-only flow</span>
+          <ul>
+            <li><strong>GitHub Codespaces:</strong> open a repo in a browser or VS Code with a prebuilt, repo-defined dev environment.</li>
+            <li><strong>GitHub Code Search:</strong> search code across repositories with GitHub’s code-aware search syntax.</li>
+            <li><strong>Copilot code review:</strong> ask Copilot to review PR changes directly in GitHub before human review.</li>
+            <li><strong>Copilot cloud agent:</strong> assign eligible GitHub issues to Copilot so it can work in the background and raise a PR.</li>
+            <li><strong>Repository custom instructions:</strong> give Copilot repo-specific guidance so suggestions follow your team’s patterns.</li>
+          </ul>
+        </div>
+        <div class="role">
+          <h3>Tech Leads</h3>
+          <span class="promise">You get repo-native control</span>
+          <ul>
+            <li><strong>CODEOWNERS:</strong> keep ownership rules in the repository so review routing travels with the code.</li>
+            <li><strong>Merge queue:</strong> automatically validate queued PRs together before they land on a protected branch.</li>
+            <li><strong>GitHub Code Quality:</strong> flag quality issues in PRs and repository scans, apply Copilot-powered autofixes, and enforce standards with rulesets.</li>
+            <li><strong>Copilot PR support:</strong> use AI-generated PR summaries and review assistance to reduce review overhead.</li>
+            <li><strong>GitHub-native rules:</strong> combine required reviews, status checks, and branch protections around the PR workflow.</li>
+          </ul>
+        </div>
+        <div class="role">
+          <h3>Platform Teams</h3>
+          <span class="promise">You get reusable GitHub rails</span>
+          <ul>
+            <li><strong>Reusable Actions workflows:</strong> publish approved workflow building blocks that teams call from their repos.</li>
+            <li><strong>GitHub Marketplace:</strong> compose automation from a large GitHub-specific ecosystem instead of custom pipeline tasks.</li>
+            <li><strong>Dev containers + Codespaces:</strong> standardize developer environments as code, not wiki setup pages.</li>
+            <li><strong>Organization-level GitHub patterns:</strong> templates, rules, environments, and Actions policies create paved roads.</li>
+            <li><strong>Artifact attestations:</strong> generate provenance for builds from GitHub Actions to support supply chain trust.</li>
+          </ul>
+        </div>
+        <div class="role">
+          <h3>Security Teams</h3>
+          <span class="promise">You get security in the PR lane</span>
+          <ul>
+            <li><strong>Dependabot:</strong> create dependency alerts and update PRs in the same GitHub repository workflow.</li>
+            <li><strong>Secret scanning push protection:</strong> block supported secrets before they are committed to GitHub.</li>
+            <li><strong>CodeQL in GitHub:</strong> surface code scanning alerts directly in PRs and repository security views.</li>
+            <li><strong>Security campaigns:</strong> group and assign remediation work across many repositories to reduce alert backlogs at scale.</li>
+            <li><strong>Security overview:</strong> manage risk across GitHub organizations and repositories from one security experience.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">More GitHub-Native Points Worth Calling Out</h2>
+      <p class="section-sub">These are useful talking points when developers ask, “What is meaningfully different from ADO?”</p>
+      <div class="native-grid">
+        <div class="native-card">
+          <div class="label">Governance</div>
+          <h3>Repository rulesets</h3>
+          <p>Define branch and tag rules consistently, including protections and required checks, using GitHub’s ruleset model instead of scattered per-repo settings.</p>
+        </div>
+        <div class="native-card">
+          <div class="label">Delivery safety</div>
+          <h3>Merge queue</h3>
+          <p>Keep protected branches green by validating queued pull requests together before merge, reducing the “it passed alone but broke main” problem.</p>
+        </div>
+        <div class="native-card">
+          <div class="label">Supply chain</div>
+          <h3>Artifact attestations</h3>
+          <p>Establish build provenance from GitHub Actions so teams can prove where an artifact came from and how it was produced.</p>
+        </div>
+        <div class="native-card">
+          <div class="label">Secrets</div>
+          <h3>Push protection</h3>
+          <p>Block supported secrets before they are pushed, turning secret leaks into a developer-time prevention flow rather than a cleanup exercise.</p>
+        </div>
+        <div class="native-card">
+          <div class="label">Dependencies</div>
+          <h3>Dependency graph + Dependabot</h3>
+          <p>Understand dependencies, receive vulnerability alerts, and open security update pull requests directly in the repository workflow.</p>
+        </div>
+        <div class="native-card">
+          <div class="label">Code quality</div>
+          <h3>Quality issues caught before merge</h3>
+          <p>GitHub Code Quality flags reliability and maintainability issues in pull requests and repository scans, applies Copilot-powered autofixes, tracks scores in dashboards, and enforces quality standards with rulesets.</p>
+        </div>
+        <div class="native-card">
+          <div class="label">AI standards</div>
+          <h3>Copilot custom instructions</h3>
+          <p>Store repository or organization guidance so Copilot responses align with team conventions, architecture choices, and preferred practices.</p>
+        </div>
+        <div class="native-card">
+          <div class="label">Security visibility</div>
+          <h3>Security overview</h3>
+          <p>Give security leaders a GitHub-native view across repositories for code scanning, secrets, and dependency risk without leaving the developer platform.</p>
+        </div>
+        <div class="native-card">
+          <div class="label">Remediation at scale</div>
+          <h3>Security campaigns</h3>
+          <p>Create focused campaigns for a set of security alerts, assign owners, track progress, and drive organization-wide remediation instead of chasing alerts one repository at a time.</p>
+        </div>
+        <div class="native-card">
+          <div class="label">Ecosystem</div>
+          <h3>GitHub Apps model</h3>
+          <p>Extend GitHub with fine-grained, app-based integrations that operate directly inside repository, issue, pull request, and organization workflows.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Side-by-Side Comparison</h2>
+      <p class="section-sub">How everyday engineering workflows compare.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th class="ado-col">Azure DevOps</th>
+              <th class="gh-col">GitHub</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="feature">CI/CD</td>
+              <td class="ado-cell">Classic &amp; YAML Pipelines</td>
+              <td class="gh-cell"><span class="check">&#10003;</span> Actions with reusable workflows and marketplace automation</td>
+            </tr>
+            <tr>
+              <td class="feature">AI Assistance</td>
+              <td class="ado-cell">Copilot in the IDE; fewer AI surfaces inside the platform</td>
+              <td class="gh-cell"><span class="check">&#10003;</span> Copilot woven into code, PRs, chat &amp; code review on the platform</td>
+            </tr>
+            <tr>
+              <td class="feature">Work Tracking</td>
+              <td class="ado-cell">Azure Boards</td>
+              <td class="gh-cell"><span class="check">&#10003;</span> Issues + Projects, tightly linked to code</td>
+            </tr>
+            <tr>
+              <td class="feature">Code Security</td>
+              <td class="ado-cell">Same GitHub Advanced Security, as a paid add-on (GHAzDO)</td>
+              <td class="gh-cell"><span class="check">&#10003;</span> CodeQL, secret scanning &amp; Dependabot native to the platform</td>
+            </tr>
+            <tr>
+              <td class="feature">Dev Environments</td>
+              <td class="ado-cell">Local setup</td>
+              <td class="gh-cell"><span class="check">&#10003;</span> Codespaces — ready in seconds</td>
+            </tr>
+            <tr>
+              <td class="feature">Test Case Management</td>
+              <td class="ado-cell"><span class="check">&#10003;</span> Azure Test Plans — mature, built-in</td>
+              <td class="gh-cell">No native equivalent; relies on Marketplace / third-party tools</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Traditional Approach vs. the GitHub Way</h2>
+      <p class="section-sub">A capability-by-capability look at how each platform approaches the same work — GitHub is optimized for keeping everything close to the developer flow.</p>
+      <div class="gap-list">
+
+        <div class="gap-item">
+          <div class="gap-head">
+            <span class="gap-num">01</span>
+            <h3>Repositories &amp; Source Control</h3>
+          </div>
+          <div class="gap-body">
+            <div class="gap-col gap">
+              <span class="tag tag-gap">Traditional Approach</span>
+              <p>Azure Repos provides reliable Git hosting with the browsing, history, and branch tooling most teams need day to day.</p>
+            </div>
+            <div class="gap-col fix">
+              <span class="tag tag-fix">The GitHub Way</span>
+              <p>Adds precise <strong>code navigation</strong> (go-to-definition, find references), org-wide code search, blame views, Git LFS for large files, and repository insights (Pulse, contributors, traffic) — plus discoverability across every repo, so teams find and reuse code fast.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-item">
+          <div class="gap-head">
+            <span class="gap-num">02</span>
+            <h3>Branching, Pull Requests &amp; Reviews</h3>
+          </div>
+          <div class="gap-body">
+            <div class="gap-col gap">
+              <span class="tag tag-gap">Traditional Approach</span>
+              <p>Azure Repos supports pull requests, branch policies, and required reviewers, configured per repository.</p>
+            </div>
+            <div class="gap-col fix">
+              <span class="tag tag-fix">The GitHub Way</span>
+              <p>Centers everything on the pull request: one-click suggested changes, CODEOWNERS auto-routing, required reviews and status checks, conversation-resolution gates, draft PRs, auto-merge, merge queues, and <strong>Copilot code review</strong> that flags issues before a human looks.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-item">
+          <div class="gap-head">
+            <span class="gap-num">03</span>
+            <h3>CI/CD &amp; Automation</h3>
+          </div>
+          <div class="gap-body">
+            <div class="gap-col gap">
+              <span class="tag tag-gap">Traditional Approach</span>
+              <p>Azure Pipelines (classic and YAML) is powerful and mature, with a dedicated pipeline model teams maintain over time.</p>
+            </div>
+            <div class="gap-col fix">
+              <span class="tag tag-fix">The GitHub Way</span>
+              <p><strong>GitHub Actions</strong> keeps CI/CD next to the code: a huge marketplace, reusable and composite workflows, matrix builds, and event-driven triggers; Linux/Windows/macOS plus larger, ARM, and GPU hosted runners; caching and artifacts; deployment environments with approvals; and keyless cloud deploys to Azure via <strong>OIDC</strong> — no long-lived secrets.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-item">
+          <div class="gap-head">
+            <span class="gap-num">04</span>
+            <h3>Packages &amp; Artifacts</h3>
+          </div>
+          <div class="gap-body">
+            <div class="gap-col gap">
+              <span class="tag tag-gap">Traditional Approach</span>
+              <p>Azure Artifacts provides package feeds as a dedicated service, billed separately by storage beyond a 2 GiB free tier.</p>
+            </div>
+            <div class="gap-col fix">
+              <span class="tag tag-fix">The GitHub Way</span>
+              <p><strong>GitHub Packages</strong> hosts npm, NuGet, Maven, Gradle, RubyGems, and container images in <strong>GitHub Container Registry (GHCR)</strong> — tied directly to repo permissions and Actions, published straight from CI, with fine-grained visibility and no separate feed to configure.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-item">
+          <div class="gap-head">
+            <span class="gap-num">05</span>
+            <h3>Security &amp; Supply Chain</h3>
+          </div>
+          <div class="gap-body">
+            <div class="gap-col gap">
+              <span class="tag tag-gap">Traditional Approach</span>
+              <p>Azure DevOps can add GitHub Advanced Security for Azure DevOps (GHAzDO) — the same CodeQL code scanning, secret scanning with push protection, and dependency scanning — offered as a paid add-on you enable per repository.</p>
+            </div>
+            <div class="gap-col fix">
+              <span class="tag tag-fix">The GitHub Way</span>
+              <p>The same Advanced Security capabilities are native to the platform — and go further: CodeQL code scanning with <strong>Copilot Autofix</strong> suggesting remediations, secret scanning with push protection, Dependabot, a dependency graph, <strong>dependency review</strong> that blocks risky packages in the PR, and <strong>security campaigns</strong> to drive down existing alerts across the org — all surfaced in PRs and the security overview.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-item">
+          <div class="gap-head">
+            <span class="gap-num">06</span>
+            <h3>Work Tracking &amp; Planning</h3>
+          </div>
+          <div class="gap-body">
+            <div class="gap-col gap">
+              <span class="tag tag-gap">Traditional Approach</span>
+              <p>Azure Boards offers rich, mature planning — hierarchical work items, custom queries, dashboards, and deep reporting that many enterprise teams genuinely rely on.</p>
+            </div>
+            <div class="gap-col fix">
+              <span class="tag tag-fix">The GitHub Way</span>
+              <p>Keeps planning next to the code: Issues with <strong>sub-issues</strong>, labels, and milestones; Projects with tables, boards, and roadmaps; custom fields, built-in automation, and <strong>insights charts</strong>; and native linking so PRs and commits keep work-item status in sync as they merge.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-item">
+          <div class="gap-head">
+            <span class="gap-num">07</span>
+            <h3>Documentation &amp; Knowledge</h3>
+          </div>
+          <div class="gap-body">
+            <div class="gap-col gap">
+              <span class="tag tag-gap">Traditional Approach</span>
+              <p>Azure DevOps Wikis provide project documentation as a dedicated, separate space.</p>
+            </div>
+            <div class="gap-col fix">
+              <span class="tag tag-fix">The GitHub Way</span>
+              <p>Versions Markdown docs with the code — including <strong>Mermaid diagrams</strong> and math — plus repo Wikis, <strong>GitHub Pages</strong> published via Actions, and Discussions (Q&amp;A, announcements, polls) — all searchable and close to the source.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-item">
+          <div class="gap-head">
+            <span class="gap-num">08</span>
+            <h3>Developer Environments</h3>
+          </div>
+          <div class="gap-body">
+            <div class="gap-col gap">
+              <span class="tag tag-gap">Traditional Approach</span>
+              <p>Developers typically configure local environments themselves, which can slow onboarding and lead to environment drift.</p>
+            </div>
+            <div class="gap-col fix">
+              <span class="tag tag-fix">The GitHub Way</span>
+              <p><strong>GitHub Codespaces</strong> launches a fully configured, containerized environment in the browser, VS Code, or JetBrains in seconds — defined as code via <strong>devcontainer.json</strong>, sped up with prebuilds, and consistent for every contributor, with no local setup or drift.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-item">
+          <div class="gap-head">
+            <span class="gap-num">09</span>
+            <h3>AI Across the Lifecycle</h3>
+          </div>
+          <div class="gap-body">
+            <div class="gap-col gap">
+              <span class="tag tag-gap">Traditional Approach</span>
+              <p>AI assistance is available in the IDE, but is not woven through the platform's repos, reviews, and pipelines.</p>
+            </div>
+            <div class="gap-col fix">
+              <span class="tag tag-fix">The GitHub Way</span>
+              <p><strong>Copilot</strong> spans the whole lifecycle: code completion and chat, PR summaries, code review, and the CLI, plus a <strong>coding agent</strong> that picks up issues and opens PRs — guided by repository custom instructions and extended through the Copilot ecosystem.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">Built for Enterprise Security, Governance &amp; Visibility</h2>
+      <p class="section-sub">For platform, security, and engineering leaders: centralize identity, policy, audit, and security posture across every repository — instead of controls scattered across separate projects and teams.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="icon">&#127963;</div>
+          <h3>Org-Wide Rulesets</h3>
+          <p>Define branch and tag protections and required checks once at the organization level and apply them consistently across many repositories — no per-project reconfiguration.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#127899;</div>
+          <h3>Centralized Policies</h3>
+          <p>Manage repository creation, member and team access, secret scanning, push protection, code scanning, and other security settings from organization and enterprise policy controls.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#9881;</div>
+          <h3>Governed Actions &amp; Workflows</h3>
+          <p>Standardize automation with organization and enterprise controls for workflow permissions, allowed actions, reusable workflows, runners, environments, and deployment approvals.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#128202;</div>
+          <h3>Security Posture Visibility</h3>
+          <p>Security overview shows code scanning, secret, dependency, and code quality risk across every repository, so leaders see posture without stitching tools together.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#129534;</div>
+          <h3>Audit &amp; Identity</h3>
+          <p>Enterprise audit logs plus Entra ID / SSO with team mapping give consistent, reviewable access governance across the organization.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#128100;</div>
+          <h3>Enterprise Managed Users</h3>
+          <p>EMU lets enterprises manage GitHub user identity, authentication, provisioning, and deprovisioning from their identity provider — useful for regulated or tightly governed environments.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">What to Weigh Before You Move</h2>
+      <p class="section-sub">A fair evaluation means naming the tradeoffs too. Here are the real ones — and how teams typically handle them.</p>
+      <div class="weigh-grid">
+        <div class="weigh-card">
+          <span class="consider">Consider</span>
+          <h3>Test case management</h3>
+          <p>Azure Test Plans has no direct GitHub equivalent. Teams that rely on manual test suites, test runs, and traceability will feel this gap most.</p>
+          <p class="handle"><strong>How teams handle it:</strong> adopt a Marketplace/third-party test management tool, or keep Test Plans during a phased move.</p>
+        </div>
+        <div class="weigh-card">
+          <span class="consider">Consider</span>
+          <h3>Boards vs. Projects parity</h3>
+          <p>GitHub Projects is flexible, but Azure Boards offers richer work-item hierarchies, queries, and process templates that some enterprise planning depends on.</p>
+          <p class="handle"><strong>How teams handle it:</strong> map fields and hierarchies up front, and pilot Projects with one team before a full cutover.</p>
+        </div>
+        <div class="weigh-card">
+          <span class="consider">Consider</span>
+          <h3>Licensing &amp; cost</h3>
+          <p>Copilot and GitHub Advanced Security (code scanning, secret scanning, Dependabot at scale) are paid capabilities, not all included by default.</p>
+          <p class="handle"><strong>How teams handle it:</strong> price the specific SKUs your teams need and compare total cost against your current ADO + tooling spend.</p>
+        </div>
+        <div class="weigh-card">
+          <span class="consider">Consider</span>
+          <h3>Migration effort</h3>
+          <p>Moving repos is straightforward; migrating work-item history, rewriting pipelines to Actions, and mapping Entra ID permissions take real planning.</p>
+          <p class="handle"><strong>How teams handle it:</strong> use GitHub Enterprise Importer, migrate high-value pipelines first, and run ADO and GitHub in parallel during transition.</p>
+        </div>
+        <div class="weigh-card">
+          <span class="consider">Consider</span>
+          <h3>Team retraining</h3>
+          <p>Reviews, pipelines, and planning work differently. Productivity can dip briefly while teams learn PR-centric and Actions-based workflows.</p>
+          <p class="handle"><strong>How teams handle it:</strong> identify champions, provide enablement, and roll out team by team rather than all at once.</p>
+        </div>
+        <div class="weigh-card">
+          <span class="consider">Consider</span>
+          <h3>Existing Azure integration</h3>
+          <p>If your delivery is deeply wired into Azure Pipelines and service connections, some integrations will need re-plumbing on GitHub.</p>
+          <p class="handle"><strong>How teams handle it:</strong> GitHub Actions supports Azure deployment via OIDC — validate your key deployment paths early.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 class="section-title">A Practical Migration Path</h2>
+      <p class="section-sub">Start with high-confidence moves, then modernize workflows as teams gain momentum.</p>
+      <div class="path">
+        <div class="step">
+          <span>1</span>
+          <h3>Assess</h3>
+          <p>Inventory repos, boards, pipelines, service connections, package feeds, branch policies, and security requirements.</p>
+        </div>
+        <div class="step">
+          <span>2</span>
+          <h3>Move Repos</h3>
+          <p>Migrate source history, preserve branch strategy, configure teams, permissions, CODEOWNERS, and protected branches.</p>
+        </div>
+        <div class="step">
+          <span>3</span>
+          <h3>Modernize CI/CD</h3>
+          <p>Convert high-value pipelines to GitHub Actions, introduce reusable workflows, and standardize release environments.</p>
+        </div>
+        <div class="step">
+          <span>4</span>
+          <h3>Scale Adoption</h3>
+          <p>Roll out GitHub Advanced Security, Copilot, Projects, templates, inner-source practices, and engineering scorecards.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="cta">
+        <h2>Ready to unify your engineering workflow?</h2>
+        <p>Consolidate planning, code, CI/CD, and security on one AI-powered platform.</p>
+        <a class="btn" href="https://github.com/features" target="_blank" rel="noopener">Explore GitHub Features</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>Benefits and tradeoffs vary by organization, implementation maturity, and governance model. Use this page as a starting point for your own evaluation.</p>
+      <p style="margin-top: 14px;">
+        <strong style="color: var(--text);">Sources (GitHub Docs):</strong><br />
+        <a style="color: var(--accent);" href="https://docs.github.com/en/codespaces/overview" target="_blank" rel="noopener">Codespaces</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/search-github/github-code-search/understanding-github-code-search-syntax" target="_blank" rel="noopener">Code Search</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue" target="_blank" rel="noopener">Merge queue</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/copilot/using-github-copilot/code-review/using-copilot-code-review" target="_blank" rel="noopener">Copilot code review</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners" target="_blank" rel="noopener">CODEOWNERS</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets" target="_blank" rel="noopener">Rulesets</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds" target="_blank" rel="noopener">Artifact attestations</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/code-security/secret-scanning/introduction/about-push-protection" target="_blank" rel="noopener">Push protection</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-the-dependency-graph" target="_blank" rel="noopener">Dependency graph</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/code-security/security-overview/about-security-overview" target="_blank" rel="noopener">Security overview</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/code-security/concepts/about-code-quality" target="_blank" rel="noopener">Code Quality</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/enterprise-cloud@latest/code-security/securing-your-organization/fixing-security-alerts-at-scale/about-security-campaigns" target="_blank" rel="noopener">Security campaigns</a> ·
+        <a style="color: var(--accent);" href="https://docs.github.com/en/enterprise-cloud@latest/admin/identity-and-access-management/using-enterprise-managed-users-for-iam/about-enterprise-managed-users" target="_blank" rel="noopener">Enterprise Managed Users</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
+

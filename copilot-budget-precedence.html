@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GitHub Copilot Budgets · User-level Precedence</title>
+<style>
+  :root {
+    --bg: #f6f8fa; --panel: #ffffff; --panel-soft: #f0f6ff; --ink: #1f2328; --muted: #656d76;
+    --border: #d0d7de; --blue: #0969da; --purple: #8250df; --green: #1a7f37; --red: #cf222e;
+    --yellow: #fff8c5; --shadow: 0 18px 45px rgba(31,35,40,.12); --shadow-soft: 0 10px 24px rgba(31,35,40,.08);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, Arial, sans-serif; color: var(--ink);
+    background: radial-gradient(circle at 10% 0%, rgba(84,174,255,.24), transparent 30%), radial-gradient(circle at 90% 8%, rgba(130,80,223,.16), transparent 28%), linear-gradient(180deg, #fff 0%, var(--bg) 52%, #fff 100%);
+    line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--blue); text-decoration: none; font-weight: 650; }
+  a:hover { text-decoration: underline; }
+  .wrap { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+  .topbar { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.86); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+  .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 13px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 850; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--blue), var(--purple)); box-shadow: 0 8px 18px rgba(9,105,218,.24); }
+  .nav { display: flex; gap: 18px; align-items: center; }
+  .nav a { color: var(--muted); font-size: 13px; font-weight: 750; }
+  .nav a:hover { color: var(--blue); }
+  @media (max-width: 780px) { .nav { display: none; } }
+
+  .hero { padding: 72px 0 36px; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 34px; align-items: center; }
+  @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } }
+  .eyebrow { display: inline-flex; align-items: center; gap: 9px; padding: 7px 13px; border: 1px solid rgba(9,105,218,.18); border-radius: 999px; background: rgba(9,105,218,.08); color: var(--blue); font-size: 12px; font-weight: 850; text-transform: uppercase; letter-spacing: 1px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  h1 { font-size: clamp(36px, 5.4vw, 68px); line-height: 1.02; margin: 20px 0 18px; letter-spacing: -.045em; }
+  .grad { background: linear-gradient(110deg, var(--blue), var(--purple)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { font-size: clamp(17px, 2vw, 21px); color: var(--muted); max-width: 760px; margin: 0; }
+  .lede strong { color: var(--ink); }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--ink); font-weight: 800; box-shadow: var(--shadow-soft); }
+  .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+
+  .rule-card { background: rgba(255,255,255,.88); border: 1px solid rgba(208,215,222,.9); border-radius: 28px; padding: 26px; box-shadow: var(--shadow); }
+  .rule-title { margin: 0 0 16px; color: var(--muted); font-size: 12px; font-weight: 900; letter-spacing: 1.3px; text-transform: uppercase; }
+  .ladder { display: grid; gap: 12px; }
+  .ladder-step { display: grid; grid-template-columns: 50px 1fr auto; gap: 14px; align-items: center; padding: 17px; border: 1px solid var(--border); border-radius: 18px; background: #fff; }
+  .ladder-step.winner { border-color: rgba(26,127,55,.42); background: linear-gradient(90deg, rgba(26,127,55,.08), #fff); }
+  .rank { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 16px; color: #fff; font-weight: 950; background: linear-gradient(135deg, var(--blue), var(--purple)); }
+  .ladder-step h3 { margin: 0; font-size: 17px; }
+  .ladder-step p { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; }
+  .badge { padding: 5px 9px; border-radius: 999px; font-size: 11px; font-weight: 850; background: rgba(9,105,218,.1); color: var(--blue); white-space: nowrap; }
+  .winner .badge { background: rgba(26,127,55,.12); color: var(--green); }
+  @media (max-width: 560px) { .ladder-step { grid-template-columns: 42px 1fr; } .ladder-step .badge { grid-column: 2; width: max-content; } .rank { width: 42px; height: 42px; } }
+
+  .section { padding: 58px 0; }
+  .section h2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.08; margin: 0 0 10px; letter-spacing: -.035em; }
+  .section-lede { margin: 0 0 26px; color: var(--muted); font-size: 17px; max-width: 820px; }
+  .formula { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 12px; align-items: stretch; margin-top: 26px; }
+  @media (max-width: 850px) { .formula { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); } }
+  .formula-card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 20px; box-shadow: var(--shadow-soft); }
+  .formula-card h3 { margin: 0 0 8px; font-size: 17px; }
+  .formula-card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .formula-card.top { border-color: rgba(26,127,55,.42); box-shadow: 0 10px 28px rgba(26,127,55,.12); }
+  .arrow { display: grid; place-items: center; color: var(--muted); font-weight: 950; font-size: 24px; }
+  .not-stack { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; }
+  @media (max-width: 920px) { .not-stack { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .not-stack { grid-template-columns: 1fr; } }
+  .myth { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+  .myth strong { display: block; margin-bottom: 5px; }
+  .myth span { color: var(--muted); font-size: 13.5px; }
+  .myth.no { border-left: 4px solid var(--red); }
+  .myth.yes { border-left: 4px solid var(--green); }
+  .callout { margin-top: 22px; padding: 18px 20px; border-radius: 18px; background: var(--yellow); border: 1px solid #d4a72c; }
+  .callout strong { color: #7d4e00; }
+
+  .simulator { display: grid; grid-template-columns: .95fr 1.05fr; gap: 22px; align-items: start; }
+  @media (max-width: 980px) { .simulator { grid-template-columns: 1fr; } }
+  .controls, .result-panel { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 22px; box-shadow: var(--shadow-soft); }
+  .control-group { padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .control-group:first-child { padding-top: 0; }
+  .control-group:last-child { border-bottom: 0; padding-bottom: 0; }
+  .label-row { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; margin-bottom: 10px; }
+  .label-row label { font-weight: 850; }
+  .label-row span { color: var(--muted); font-size: 12.5px; }
+  .toggle-grid { display: grid; grid-template-columns: 1fr 108px; gap: 10px; align-items: center; }
+  @media (max-width: 520px) { .toggle-grid { grid-template-columns: 1fr; } }
+  .switch-row { display: flex; gap: 10px; align-items: center; min-height: 44px; }
+  .switch-row input { width: 18px; height: 18px; accent-color: var(--blue); }
+  .switch-row strong { font-size: 14px; }
+  .money-input { width: 100%; height: 42px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); font: inherit; font-weight: 800; }
+  .money-input:disabled { background: var(--bg); color: var(--muted); }
+  .winner-banner { border-radius: 22px; padding: 24px; background: linear-gradient(135deg, rgba(9,105,218,.1), rgba(130,80,223,.08)); border: 1px solid rgba(9,105,218,.22); }
+  .winner-kicker { font-size: 12px; font-weight: 950; text-transform: uppercase; letter-spacing: 1.1px; color: var(--blue); }
+  .winner-name { font-size: clamp(30px, 4vw, 48px); font-weight: 950; letter-spacing: -.04em; line-height: 1; margin: 8px 0; }
+  .winner-explainer { color: var(--muted); margin: 0; }
+  .limit-pill { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 9px 12px; border-radius: 999px; background: #fff; border: 1px solid var(--border); font-weight: 850; }
+  .limit-pill.block { color: var(--red); border-color: rgba(207,34,46,.35); background: rgba(207,34,46,.06); }
+  .decision-path { margin-top: 18px; display: grid; gap: 10px; }
+  .path-row { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 13px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); opacity: .55; }
+  .path-row.active { opacity: 1; background: #fff; border-color: rgba(26,127,55,.38); }
+  .path-row.skipped { opacity: .38; }
+  .path-num { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; background: #fff; border: 1px solid var(--border); font-weight: 900; }
+  .path-copy strong { display: block; }
+  .path-copy span { color: var(--muted); font-size: 13px; }
+  .status { font-size: 12px; font-weight: 900; padding: 5px 8px; border-radius: 999px; background: rgba(101,109,118,.12); color: var(--muted); }
+  .active .status { background: rgba(26,127,55,.12); color: var(--green); }
+
+  .matrix { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 840px) { .matrix { grid-template-columns: 1fr; } }
+  .scenario { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-soft); }
+  .scenario h3 { margin: 6px 0 10px; font-size: 18px; line-height: 1.25; }
+  .scenario-label { color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: .9px; text-transform: uppercase; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .chip { padding: 6px 10px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 800; }
+  .chip.win { background: rgba(26,127,55,.1); border-color: rgba(26,127,55,.32); color: var(--green); }
+  .answer-strip { margin: 14px 0; padding: 14px 16px; border-radius: 16px; background: linear-gradient(90deg, rgba(26,127,55,.1), rgba(26,127,55,.04)); border: 1px solid rgba(26,127,55,.24); }
+  .answer-strip span { display: block; color: var(--muted); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .8px; }
+  .answer-strip strong { display: block; margin-top: 3px; color: var(--green); font-size: 18px; }
+  .scenario p { margin: 0; color: var(--muted); font-size: 14px; }
+  .quick-answer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .quick-answer-grid { grid-template-columns: 1fr; } }
+  .quick-answer-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-soft); }
+  .quick-answer-card h3 { margin: 0 0 8px; font-size: 18px; }
+  .quick-answer-card p { color: var(--muted); margin: 0; font-size: 14px; }
+  .quick-answer-card .answer { margin-top: 13px; padding: 13px; border-radius: 14px; background: var(--panel-soft); color: var(--ink); font-weight: 700; font-size: 14px; }
+  footer { padding: 42px 0; color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--border); }
+  .footer-inner { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand"><span class="brand-mark">🏆</span><span>Copilot Budget Precedence</span></div>
+    <nav class="nav" aria-label="Page sections"><a href="#rule">Rule</a><a href="#simulator">Simulator</a><a href="#scenarios">Scenarios</a><a href="#quick-answers">Quick answers</a></nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><span class="dot"></span> Usage-based billing budgets</span>
+      <h1>When budgets overlap, <span class="grad">specificity wins.</span></h1>
+      <p class="lede">GitHub’s user-level budget precedence is simple, but the combinations feel noisy. Remember it as one sentence: <strong>pick the most specific budget that applies to the user, then ignore the less specific ones for that user.</strong></p>
+      <div class="hero-actions"><a class="btn btn-primary" href="#simulator">Try scenarios ↓</a><a class="btn" href="https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/billing/budgets-for-usage-based-billing" target="_blank" rel="noopener">Official docs ↗</a></div>
+    </div>
+    <aside class="rule-card" aria-label="Budget specificity ladder">
+      <p class="rule-title">The only ladder to remember</p>
+      <div class="ladder">
+        <div class="ladder-step winner"><div class="rank">1</div><div><h3>Individual user-level budget</h3><p>Applies to one named user. It overrides cost center and universal user-level budgets.</p></div><span class="badge">Most specific</span></div>
+        <div class="ladder-step"><div class="rank">2</div><div><h3>Cost center user-level budget</h3><p>Applies per user to members of a cost center. It overrides the universal default.</p></div><span class="badge">Middle</span></div>
+        <div class="ladder-step"><div class="rank">3</div><div><h3>Universal user-level budget</h3><p>The fallback per-user budget for licensed users when no more specific rule applies.</p></div><span class="badge">Fallback</span></div>
+      </div>
+    </aside>
+  </div>
+</header>
+
+<main>
+  <section class="section" id="rule"><div class="wrap">
+    <h2>The decision is not a math problem. It is a lookup.</h2>
+    <p class="section-lede">The common mistake is treating overlapping budgets as additive, lowest-wins, or sequential gates. For user-level budgets, GitHub resolves a single winning budget by specificity.</p>
+    <div class="formula" aria-label="Specificity formula">
+      <div class="formula-card top"><h3>1. Is there an individual budget?</h3><p>If yes, that is the user’s effective user-level budget. Stop comparing.</p></div><div class="arrow">→</div>
+      <div class="formula-card"><h3>2. Else, is there a cost center per-user budget?</h3><p>If yes, that becomes the effective budget for members of that cost center.</p></div><div class="arrow">→</div>
+      <div class="formula-card"><h3>3. Else, use universal</h3><p>The universal user-level budget is the safety-net default.</p></div>
+    </div>
+    <div class="not-stack">
+      <div class="myth no"><strong>❌ Not additive</strong><span>$10 universal + $20 cost center does not become $30.</span></div>
+      <div class="myth no"><strong>❌ Not lowest-wins</strong><span>A $0 universal does not block a user who has a $25 cost center override.</span></div>
+      <div class="myth no"><strong>❌ Not highest-wins</strong><span>A $100 universal does not override a $20 individual budget.</span></div>
+      <div class="myth yes"><strong>✅ Specificity-wins</strong><span>The closest matching rule to the user is the effective user-level budget.</span></div>
+    </div>
+    <div class="callout"><strong>Shared explanation:</strong> “Universal is the default policy, cost center is the department exception, individual is the named-person exception. The named-person exception wins because it is the most specific.”</div>
+  </div></section>
+
+  <section class="section" id="simulator"><div class="wrap">
+    <h2>Scenario simulator: which budget wins?</h2>
+    <p class="section-lede">Toggle which budgets apply to a user. Notice that the selected dollar amount is not chosen because it is bigger or smaller; it is chosen because it is more specific.</p>
+    <div class="simulator">
+      <div class="controls" aria-label="Scenario controls">
+        <div class="control-group"><div class="label-row"><label for="universalApplies">Universal user-level budget</label><span>Fallback</span></div><div class="toggle-grid"><label class="switch-row"><input id="universalApplies" type="checkbox" checked disabled /> <strong>Applies</strong></label><input id="universalAmount" class="money-input" type="number" min="0" step="1" value="0" aria-label="Universal budget amount" /></div></div>
+        <div class="control-group"><div class="label-row"><label for="costCenterApplies">Cost center user-level budget</label><span>Department override</span></div><div class="toggle-grid"><label class="switch-row"><input id="costCenterApplies" type="checkbox" checked /> <strong>User is in cost center</strong></label><input id="costCenterAmount" class="money-input" type="number" min="0" step="1" value="25" aria-label="Cost center budget amount" /></div></div>
+        <div class="control-group"><div class="label-row"><label for="individualApplies">Individual user-level budget</label><span>Named-user override</span></div><div class="toggle-grid"><label class="switch-row"><input id="individualApplies" type="checkbox" /> <strong>User has individual rule</strong></label><input id="individualAmount" class="money-input" type="number" min="0" step="1" value="10" aria-label="Individual budget amount" /></div></div>
+      </div>
+      <div class="result-panel" aria-live="polite">
+        <div class="winner-banner"><div class="winner-kicker">Effective user-level budget</div><div class="winner-name" id="winnerName">Cost center user-level budget</div><p class="winner-explainer" id="winnerExplainer">The user is covered by a cost center user-level budget, so it overrides the universal default.</p><div class="limit-pill" id="limitPill">Effective limit: $25</div></div>
+        <div class="decision-path">
+          <div class="path-row" id="pathIndividual"><div class="path-num">1</div><div class="path-copy"><strong>Check individual</strong><span id="pathIndividualCopy">No individual rule, continue.</span></div><span class="status" id="pathIndividualStatus">Skip</span></div>
+          <div class="path-row active" id="pathCostCenter"><div class="path-num">2</div><div class="path-copy"><strong>Check cost center</strong><span id="pathCostCenterCopy">Applies, so it wins.</span></div><span class="status" id="pathCostCenterStatus">Winner</span></div>
+          <div class="path-row skipped" id="pathUniversal"><div class="path-num">3</div><div class="path-copy"><strong>Use universal fallback</strong><span id="pathUniversalCopy">Ignored because a more specific budget already matched.</span></div><span class="status" id="pathUniversalStatus">Ignored</span></div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="section" id="scenarios"><div class="wrap">
+    <h2>Four budget questions this clears up</h2><p class="section-lede">Use this as a shared cheat sheet for reading, discussion, and team enablement. Each card answers the confusing moment: “I see multiple budgets — which one actually controls this user?” Read left to right: question → budgets in play → effective answer.</p>
+    <div class="matrix">
+      <article class="scenario"><span class="scenario-label">Question</span><h3>“Universal is $0. Does that block Engineering too?”</h3><div class="chips"><span class="chip">Universal $0</span><span class="chip win">Engineering cost center $25</span><span class="chip">No individual</span></div><div class="answer-strip"><span>Effective budget</span><strong>Engineering cost center $25</strong></div><p>No. Engineering is not blocked by the universal $0 because the cost center user-level budget is more specific. Users outside Engineering still follow the $0 universal default.</p></article>
+      <article class="scenario"><span class="scenario-label">Question</span><h3>“A power user has three budgets. Which amount do they get?”</h3><div class="chips"><span class="chip">Universal $10</span><span class="chip">Sales cost center $20</span><span class="chip win">Priya individual $100</span></div><div class="answer-strip"><span>Effective budget</span><strong>Priya individual $100</strong></div><p>Priya gets $100 because a named-user budget is the most specific rule. It overrides both her department budget and the universal default.</p></article>
+      <article class="scenario"><span class="scenario-label">Question</span><h3>“Can we restrict one person even if their department is open?”</h3><div class="chips"><span class="chip">Universal $10</span><span class="chip">Engineering cost center $50</span><span class="chip win">Alex individual $0</span></div><div class="answer-strip"><span>Effective budget</span><strong>Alex individual $0</strong></div><p>Yes. Alex is blocked because the individual budget is most specific. A lower individual budget can override a higher department budget.</p></article>
+      <article class="scenario"><span class="scenario-label">Question</span><h3>“What happens when no exception applies?”</h3><div class="chips"><span class="chip win">Universal $15</span><span class="chip">No cost center match</span><span class="chip">No individual</span></div><div class="answer-strip"><span>Effective budget</span><strong>Universal $15</strong></div><p>The universal user-level budget wins only because there is no more specific user-level budget for this user.</p></article>
+    </div>
+  </div></section>
+
+  <section class="section" id="quick-answers"><div class="wrap">
+    <h2>Common questions, quick answers</h2><p class="section-lede">Short explanations for the places people commonly trip up — useful for discussions, internal enablement, or self-serve review.</p>
+    <div class="quick-answer-grid">
+      <article class="quick-answer-card"><h3>“If universal is $0, does it block everyone?”</h3><p>It blocks users who only have the universal budget.</p><div class="answer">If a cost center or individual budget also applies, the more specific budget wins for that user.</div></article>
+      <article class="quick-answer-card"><h3>“Do user-level budgets stack?”</h3><p>No. They resolve to one effective budget.</p><div class="answer">Think “policy override,” not “wallet balance.” The most specific policy becomes the user’s budget.</div></article>
+      <article class="quick-answer-card"><h3>“Is the highest dollar amount chosen?”</h3><p>No. Dollar amount does not determine precedence.</p><div class="answer">A $5 individual budget beats a $100 universal budget because the individual rule is more specific.</div></article>
+    </div>
+  </div></section>
+
+</main>
+
+<footer><div class="wrap footer-inner"><span>Built for GitHub Copilot usage-based billing education · 2026</span><span>Source: GitHub Docs, “Budgets for usage-based billing.”</span></div></footer>
+
+<script>
+  const elements = {
+    costCenterApplies: document.getElementById('costCenterApplies'), individualApplies: document.getElementById('individualApplies'),
+    universalAmount: document.getElementById('universalAmount'), costCenterAmount: document.getElementById('costCenterAmount'), individualAmount: document.getElementById('individualAmount'),
+    winnerName: document.getElementById('winnerName'), winnerExplainer: document.getElementById('winnerExplainer'), limitPill: document.getElementById('limitPill'),
+    pathIndividual: document.getElementById('pathIndividual'), pathCostCenter: document.getElementById('pathCostCenter'), pathUniversal: document.getElementById('pathUniversal'),
+    pathIndividualCopy: document.getElementById('pathIndividualCopy'), pathCostCenterCopy: document.getElementById('pathCostCenterCopy'), pathUniversalCopy: document.getElementById('pathUniversalCopy'),
+    pathIndividualStatus: document.getElementById('pathIndividualStatus'), pathCostCenterStatus: document.getElementById('pathCostCenterStatus'), pathUniversalStatus: document.getElementById('pathUniversalStatus')
+  };
+  function dollars(value) { return `$${Math.max(0, parseInt(value, 10) || 0)}`; }
+  function updatePath(row, copyEl, statusEl, copy, status, mode) {
+    row.classList.remove('active', 'skipped'); if (mode) row.classList.add(mode); copyEl.textContent = copy; statusEl.textContent = status;
+  }
+  function resolveWinner() {
+    const costCenterApplies = elements.costCenterApplies.checked;
+    const individualApplies = elements.individualApplies.checked;
+    const universalAmount = parseInt(elements.universalAmount.value, 10) || 0;
+    const costCenterAmount = parseInt(elements.costCenterAmount.value, 10) || 0;
+    const individualAmount = parseInt(elements.individualAmount.value, 10) || 0;
+    let winner = { key: 'universal', name: 'Universal user-level budget', amount: universalAmount, explainer: 'No individual or cost center user-level budget applies, so the universal default is effective.' };
+    if (individualApplies) winner = { key: 'individual', name: 'Individual user-level budget', amount: individualAmount, explainer: 'The user has a named individual budget, so it overrides both cost center and universal user-level budgets.' };
+    else if (costCenterApplies) winner = { key: 'costCenter', name: 'Cost center user-level budget', amount: costCenterAmount, explainer: 'The user is covered by a cost center user-level budget, so it overrides the universal default.' };
+    elements.winnerName.textContent = winner.name; elements.winnerExplainer.textContent = winner.explainer;
+    elements.limitPill.textContent = winner.amount === 0 ? 'Effective limit: $0 — usage stops for this user' : `Effective limit: ${dollars(winner.amount)}`;
+    elements.limitPill.classList.toggle('block', winner.amount === 0);
+    if (winner.key === 'individual') {
+      updatePath(elements.pathIndividual, elements.pathIndividualCopy, elements.pathIndividualStatus, `Applies with ${dollars(individualAmount)}, so it wins immediately.`, 'Winner', 'active');
+      updatePath(elements.pathCostCenter, elements.pathCostCenterCopy, elements.pathCostCenterStatus, costCenterApplies ? 'Ignored because individual is more specific.' : 'Not checked after individual match.', 'Ignored', 'skipped');
+      updatePath(elements.pathUniversal, elements.pathUniversalCopy, elements.pathUniversalStatus, 'Ignored because individual is more specific.', 'Ignored', 'skipped');
+    } else if (winner.key === 'costCenter') {
+      updatePath(elements.pathIndividual, elements.pathIndividualCopy, elements.pathIndividualStatus, 'No individual rule, continue.', 'No match', '');
+      updatePath(elements.pathCostCenter, elements.pathCostCenterCopy, elements.pathCostCenterStatus, `Applies with ${dollars(costCenterAmount)}, so it wins.`, 'Winner', 'active');
+      updatePath(elements.pathUniversal, elements.pathUniversalCopy, elements.pathUniversalStatus, 'Ignored because cost center is more specific.', 'Ignored', 'skipped');
+    } else {
+      updatePath(elements.pathIndividual, elements.pathIndividualCopy, elements.pathIndividualStatus, 'No individual rule, continue.', 'No match', '');
+      updatePath(elements.pathCostCenter, elements.pathCostCenterCopy, elements.pathCostCenterStatus, 'No cost center user-level budget applies, continue.', 'No match', '');
+      updatePath(elements.pathUniversal, elements.pathUniversalCopy, elements.pathUniversalStatus, `Fallback applies with ${dollars(universalAmount)}.`, 'Winner', 'active');
+    }
+  }
+  ['change', 'input'].forEach(eventName => {
+    elements.costCenterApplies.addEventListener(eventName, resolveWinner); elements.individualApplies.addEventListener(eventName, resolveWinner);
+    elements.universalAmount.addEventListener(eventName, resolveWinner); elements.costCenterAmount.addEventListener(eventName, resolveWinner); elements.individualAmount.addEventListener(eventName, resolveWinner);
+  });
+  resolveWinner();
+</script>
+</body>
+</html>
