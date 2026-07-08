@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GitHub Advanced Security · Customer Story</title>
+<style>
+  :root{
+    --bg:#0b1020;
+    --bg2:#111a33;
+    --panel:#ffffff;
+    --panel-dark:#151f3a;
+    --ink:#f7f9fc;
+    --muted:#aebbd1;
+    --line:rgba(255,255,255,.14);
+    --blue:#58a6ff;
+    --purple:#b57cff;
+    --green:#56d364;
+    --yellow:#ffd166;
+    --orange:#ff9f1c;
+    --red:#ff6b7a;
+    --white:#fff;
+    --shadow:0 24px 70px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.06);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,system-ui,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 20% 5%,rgba(88,166,255,.24),transparent 28%),
+      radial-gradient(circle at 82% 18%,rgba(181,124,255,.20),transparent 30%),
+      linear-gradient(180deg,var(--bg),var(--bg2) 48%,#0b1224);
+    line-height:1.55;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+    background-size:54px 54px;
+    mask-image:linear-gradient(180deg,rgba(0,0,0,.7),transparent 78%);
+  }
+
+  a{color:var(--blue);text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    border-bottom:1px solid var(--line);
+    background:rgba(11,16,32,.74);
+    backdrop-filter:blur(16px);
+  }
+  .topbar-inner{max-width:1180px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:850;letter-spacing:.2px}
+  .brand-mark{width:36px;height:36px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--purple));box-shadow:0 0 30px rgba(88,166,255,.35)}
+  .progress-shell{width:min(360px,36vw);height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+  .progress{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--blue),var(--purple));border-radius:999px}
+  @media(max-width:720px){.progress-shell{display:none}.brand{font-size:14px}}
+
+  .hero{min-height:100vh;display:grid;place-items:center;text-align:center;padding:118px 0 70px;position:relative}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 15px;border:1px solid rgba(255,255,255,.13);border-radius:999px;background:rgba(255,255,255,.055);color:var(--muted);font-size:12px;font-weight:900;letter-spacing:1.35px;text-transform:uppercase}
+  .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(86,211,100,.6);animation:pulse 1.8s infinite}
+  @keyframes pulse{70%{box-shadow:0 0 0 13px rgba(86,211,100,0)}}
+  h1{font-size:clamp(40px,7vw,84px);line-height:.98;margin:24px auto 0;max-width:1040px;letter-spacing:-.055em}
+  .grad{background:linear-gradient(110deg,var(--blue),var(--purple) 50%,#6fffd2);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{max-width:800px;margin:24px auto 0;color:var(--muted);font-size:clamp(17px,2vw,20px)}
+  .scroll-cue{margin-top:34px;color:var(--muted);font-size:13px;font-weight:850;text-transform:uppercase;letter-spacing:1.2px;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(8px)}}
+
+  .hero-stage{
+    margin:44px auto 0;
+    max-width:980px;
+    display:grid;
+    grid-template-columns:1fr 86px 1fr;
+    gap:18px;
+    align-items:center;
+  }
+  .big-card{min-height:220px;padding:24px;border-radius:28px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);box-shadow:var(--shadow);text-align:left;position:relative;overflow:hidden}
+  .big-card::after{content:"";position:absolute;inset:auto -40px -70px auto;width:190px;height:190px;border-radius:50%;background:rgba(88,166,255,.16);filter:blur(6px)}
+  .big-card h2{margin:0;font-size:24px;letter-spacing:-.02em}.big-card p{margin:10px 0 0;color:var(--muted)}
+  .vendor-stack{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .vendor{padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.09);font-size:12px;font-weight:800;color:#dce8ff}
+  .bridge{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),var(--blue));font-size:34px;box-shadow:0 0 36px rgba(86,211,100,.28)}
+  @media(max-width:820px){.hero-stage{grid-template-columns:1fr}.bridge{margin:auto;transform:rotate(90deg)}}
+
+  .chapter{position:relative;min-height:100vh;display:grid;align-items:center;padding:96px 0}
+  .chapter-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:34px;align-items:center}
+  .chapter:nth-child(even) .chapter-grid{grid-template-columns:1.08fr .92fr}
+  @media(max-width:920px){.chapter-grid,.chapter:nth-child(even) .chapter-grid{grid-template-columns:1fr}.stage{position:relative!important;top:auto!important}}
+  .copy{padding:30px;border-radius:28px;background:rgba(21,31,58,.76);border:1px solid rgba(255,255,255,.1);box-shadow:0 18px 52px rgba(0,0,0,.22);backdrop-filter:blur(12px)}
+  .chapter-no{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:15px;background:linear-gradient(135deg,var(--blue),var(--purple));font-size:18px;font-weight:950;margin-bottom:16px}
+  .copy h2{font-size:clamp(28px,4vw,46px);line-height:1.08;margin:0;letter-spacing:-.035em}
+  .copy p{color:var(--muted);font-size:17px;margin:16px 0 0}
+  .talk-track{margin-top:18px;padding:16px 18px;border-left:4px solid var(--green);border-radius:0 16px 16px 0;background:rgba(86,211,100,.09);color:#eaffef;font-weight:760}
+  .talk-track strong{color:var(--green)}
+  .stage{position:sticky;top:98px;min-height:520px;border-radius:34px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025)),var(--panel-dark);box-shadow:var(--shadow);overflow:hidden;padding:26px}
+  .stage-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;color:var(--muted);font-size:12px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase}
+  .pill{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#d8e7ff}
+
+  .tool-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:22px}
+  .tool{padding:18px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);min-height:130px;display:flex;flex-direction:column;justify-content:space-between;transform:translateY(18px);opacity:.55;transition:all .55s cubic-bezier(.22,1,.36,1)}
+  .active .tool{opacity:1;transform:none}.tool:nth-child(2){transition-delay:.1s}.tool:nth-child(3){transition-delay:.2s}.tool:nth-child(4){transition-delay:.3s}
+  .tool h3{margin:0;font-size:17px}.tool p{margin:8px 0 0;color:var(--muted);font-size:13.5px}.tool .ok{color:var(--green);font-weight:900;font-size:13px}
+  @media(max-width:560px){.tool-grid{grid-template-columns:1fr}}
+
+  .flow{display:grid;gap:14px;margin-top:22px}
+  .flow-row{display:grid;grid-template-columns:74px 1fr auto;gap:14px;align-items:center;padding:17px;border-radius:20px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);opacity:.45;transform:translateX(28px);transition:all .55s cubic-bezier(.22,1,.36,1)}
+  .active .flow-row{opacity:1;transform:none}.flow-row:nth-child(2){transition-delay:.1s}.flow-row:nth-child(3){transition-delay:.2s}.flow-row:nth-child(4){transition-delay:.3s}
+  .flow-icon{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:rgba(88,166,255,.13);border:1px solid rgba(88,166,255,.24);font-size:25px}
+  .flow-row h3{margin:0;font-size:16px}.flow-row p{margin:4px 0 0;color:var(--muted);font-size:13.5px}.tag{font-size:12px;font-weight:900;color:var(--green)}
+
+  .pr-card{margin-top:22px;border-radius:24px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.18);padding:20px}
+  .pr-line{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+  .pr-line:last-child{border-bottom:0}.check{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:rgba(86,211,100,.14);color:var(--green);font-weight:950}.warn{background:rgba(255,209,102,.13);color:var(--yellow)}.pr-line b{font-size:14px}.pr-line span{color:var(--muted);font-size:12px}.state{font-size:12px;font-weight:900;color:#dce8ff;background:rgba(255,255,255,.07);padding:5px 9px;border-radius:999px}
+
+  .before-after{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+  .ba{padding:20px;border-radius:22px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);min-height:250px}.ba h3{margin:0 0 14px}.ba ul{margin:0;padding-left:18px;color:var(--muted)}.ba li{margin:10px 0}.ba.good{border-color:rgba(86,211,100,.28);background:rgba(86,211,100,.07)}.ba.bad{border-color:rgba(255,209,102,.24)}
+  @media(max-width:680px){.before-after{grid-template-columns:1fr}}
+
+  .governance{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:22px}.guard{padding:18px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045)}.guard strong{display:block;margin-bottom:7px}.guard span{color:var(--muted);font-size:13.5px}.guard.blocked{border-color:rgba(255,107,122,.32);background:rgba(255,107,122,.08)}.guard.allowed{border-color:rgba(86,211,100,.32);background:rgba(86,211,100,.07)}
+  @media(max-width:560px){.governance{grid-template-columns:1fr}}
+
+  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:22px}.metric{padding:20px;border-radius:22px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045)}.metric .num{font-size:34px;font-weight:950;color:var(--green);line-height:1.05}.metric p{margin:8px 0 0;color:var(--muted);font-size:13.5px}
+
+  .final{padding:100px 0 120px;text-align:center}.final-card{max-width:980px;margin:0 auto;padding:42px;border-radius:34px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,rgba(88,166,255,.12),rgba(181,124,255,.12),rgba(86,211,100,.08));box-shadow:var(--shadow)}.final h2{font-size:clamp(32px,5vw,56px);line-height:1.05;margin:22px 0 0;letter-spacing:-.04em}.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px;text-align:left}.rule{padding:18px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09)}.rule strong{display:block;margin-bottom:7px}.rule span{color:var(--muted);font-size:13.5px}@media(max-width:820px){.rules{grid-template-columns:1fr}}
+
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s cubic-bezier(.22,1,.36,1)}
+  .reveal.active{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}.tool,.flow-row{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="brand-mark">🛡️</span><span>GitHub Advanced Security for Enterprise</span></div>
+    <div class="progress-shell" aria-hidden="true"><div class="progress" id="progress"></div></div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="pulse"></span> Customer story</span>
+    <h1>Extend your AppSec program. <span class="grad">Bring security closer to code.</span></h1>
+    <p class="lede">Many enterprises already use strong tools such as Snyk, Checkmarx, SonarQube, and others. GitHub Advanced Security adds value by bringing security feedback into the GitHub workflows where developers review, fix, and merge code.</p>
+
+    <div class="hero-stage">
+      <div class="big-card">
+        <h2>Your existing AppSec stack</h2>
+        <p>Security scanners, dashboards, and specialist workflows that your security teams already trust.</p>
+        <div class="vendor-stack"><span class="vendor">Snyk</span><span class="vendor">Checkmarx</span><span class="vendor">SonarQube</span><span class="vendor">Others</span></div>
+      </div>
+      <div class="bridge">→</div>
+      <div class="big-card">
+        <h2>GitHub-native security</h2>
+        <p>Code scanning, secret scanning, dependency review, and security governance embedded where developers already work.</p>
+        <div class="vendor-stack"><span class="vendor">Pull requests</span><span class="vendor">Repos</span><span class="vendor">Policies</span><span class="vendor">Audit</span></div>
+      </div>
+    </div>
+    <div class="scroll-cue">Scroll the story ↓</div>
+  </div>
+</header>
+
+<main>
+  <section class="chapter" id="chapter-1">
+    <div class="wrap chapter-grid">
+      <div class="copy reveal">
+        <div class="chapter-no">1</div>
+        <h2>Build on what already works.</h2>
+        <p>GitHub Advanced Security is designed to complement existing security investments. It helps move relevant security feedback into the developer workflow, so teams can act earlier and with more context.</p>
+        <div class="talk-track"><strong>Key message:</strong> Keep the tools that work. Add GitHub-native security where developers make day-to-day code decisions.</div>
+      </div>
+      <div class="stage reveal">
+        <div class="stage-title"><span>Security ecosystem</span><span class="pill">Complementary value</span></div>
+        <div class="tool-grid">
+          <div class="tool"><div><h3>Snyk</h3><p>Dependency and open-source security workflows.</p></div><span class="ok">Existing value</span></div>
+          <div class="tool"><div><h3>Checkmarx</h3><p>Application security and SAST workflows.</p></div><span class="ok">Existing value</span></div>
+          <div class="tool"><div><h3>SonarQube</h3><p>Code quality and maintainability workflows.</p></div><span class="ok">Existing value</span></div>
+          <div class="tool"><div><h3>GHAS</h3><p>Security feedback embedded directly into GitHub workflows.</p></div><span class="ok">Workflow value</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-2">
+    <div class="wrap chapter-grid">
+      <div class="stage reveal">
+        <div class="stage-title"><span>The real friction</span><span class="pill">Signal → action gap</span></div>
+        <div class="before-after">
+          <div class="ba bad">
+            <h3>Security signal outside the flow</h3>
+            <ul>
+              <li>Separate dashboards</li>
+              <li>Delayed developer feedback</li>
+              <li>Manual triage loops</li>
+              <li>Findings fixed after review</li>
+            </ul>
+          </div>
+          <div class="ba good">
+            <h3>Security signal inside GitHub</h3>
+            <ul>
+              <li>PR annotations</li>
+              <li>Dependency review before merge</li>
+              <li>Secret scanning alerts</li>
+              <li>Branch protection and policies</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="copy reveal">
+        <div class="chapter-no">2</div>
+        <h2>Close the gap between signal and action.</h2>
+        <p>Enterprise security teams often have rich detection capabilities. The next opportunity is making the right findings easier for developers to see, understand, and fix before code is merged.</p>
+        <div class="talk-track"><strong>Customer value:</strong> GHAS helps shorten the path from security finding to developer remediation.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-3">
+    <div class="wrap chapter-grid">
+      <div class="copy reveal">
+        <div class="chapter-no">3</div>
+        <h2>Put security at the point of merge.</h2>
+        <p>The pull request is where developers, reviewers, branch protections, and CI come together. GHAS surfaces security feedback at that decision point, with context tied to the code change.</p>
+        <div class="talk-track"><strong>Customer value:</strong> Findings appear before code lands, with context, ownership, and a path to remediation.</div>
+      </div>
+      <div class="stage reveal">
+        <div class="stage-title"><span>Pull request view</span><span class="pill">Security at decision time</span></div>
+        <div class="pr-card">
+          <div class="pr-line"><span class="check">✓</span><div><b>Code scanning</b><br><span>Risk annotated on the changed line</span></div><span class="state">In PR</span></div>
+          <div class="pr-line"><span class="check warn">!</span><div><b>Dependency review</b><br><span>New vulnerable dependency flagged before merge</span></div><span class="state">Blocked</span></div>
+          <div class="pr-line"><span class="check">✓</span><div><b>Secret scanning</b><br><span>Credential-like token detected and alerted</span></div><span class="state">Actionable</span></div>
+          <div class="pr-line"><span class="check">✓</span><div><b>Branch protection</b><br><span>Security checks tied to merge governance</span></div><span class="state">Governed</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-4">
+    <div class="wrap chapter-grid">
+      <div class="stage reveal">
+        <div class="stage-title"><span>Developer journey</span><span class="pill">Less context switching</span></div>
+        <div class="flow">
+          <div class="flow-row"><div class="flow-icon">🧑‍💻</div><div><h3>Developer opens PR</h3><p>Security feedback arrives where review already happens.</p></div><span class="tag">Native</span></div>
+          <div class="flow-row"><div class="flow-icon">🔎</div><div><h3>Finding appears inline</h3><p>The risky line, dependency, or secret is tied to the change.</p></div><span class="tag">Context</span></div>
+          <div class="flow-row"><div class="flow-icon">🛠️</div><div><h3>Developer fixes quickly</h3><p>No dashboard hop, ticket chase, or delayed handoff needed.</p></div><span class="tag">Action</span></div>
+          <div class="flow-row"><div class="flow-icon">✅</div><div><h3>Policy confirms readiness</h3><p>Checks, audit trail, and branch rules support governance.</p></div><span class="tag">Control</span></div>
+        </div>
+      </div>
+      <div class="copy reveal">
+        <div class="chapter-no">4</div>
+        <h2>GHAS is a workflow layer.</h2>
+        <p>It is not just another place to find vulnerabilities. Its strength is that it connects detection to the developer path: PRs, repos, code owners, branch protection, audit logs, and remediation workflows.</p>
+        <div class="talk-track"><strong>Customer value:</strong> Fewer workflow handoffs, less context switching, and more security feedback resolved where developers already work.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-5">
+    <div class="wrap chapter-grid">
+      <div class="copy reveal">
+        <div class="chapter-no">5</div>
+        <h2>Scale security governance across GitHub.</h2>
+        <p>For enterprise security leaders, the value is consistency: security rules at scale, traceability across repositories, and fewer exceptions hiding in side channels.</p>
+        <div class="talk-track"><strong>Customer value:</strong> GHAS gives security and platform teams a GitHub-native control layer across the software delivery estate.</div>
+      </div>
+      <div class="stage reveal">
+        <div class="stage-title"><span>Control plane</span><span class="pill">Enterprise scale</span></div>
+        <div class="governance">
+          <div class="guard allowed"><strong>Policy in the repo</strong><span>Security checks can participate in branch protection.</span></div>
+          <div class="guard allowed"><strong>Auditability</strong><span>Security alerts and actions are visible in GitHub workflows.</span></div>
+          <div class="guard allowed"><strong>Developer ownership</strong><span>Findings can route to teams that own the code.</span></div>
+          <div class="guard blocked"><strong>No silent bypass</strong><span>Risky changes can be surfaced before merge.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-6">
+    <div class="wrap chapter-grid">
+      <div class="stage reveal">
+        <div class="stage-title"><span>Adoption model</span><span class="pill">Better together</span></div>
+        <div class="before-after">
+          <div class="ba bad">
+            <h3>Traditional rollout friction</h3>
+            <ul>
+              <li>Findings live in multiple portals</li>
+              <li>Developers need extra context to reproduce</li>
+              <li>Security teams chase remediation status</li>
+              <li>Policy enforcement varies by repository</li>
+            </ul>
+          </div>
+          <div class="ba good">
+            <h3>GitHub-native adoption</h3>
+            <ul>
+              <li>Findings appear in PR and repository workflows</li>
+              <li>Developers see the issue in code context</li>
+              <li>Remediation is visible in the delivery flow</li>
+              <li>Policies can align to branch and repo governance</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="copy reveal">
+        <div class="chapter-no">6</div>
+        <h2>Adoption improves when security is native.</h2>
+        <p>GHAS helps reduce friction by placing security feedback in the same system developers use to collaborate, review, and merge code. That makes security easier to operationalize across teams.</p>
+        <div class="talk-track"><strong>Customer value:</strong> GHAS can be adopted alongside your current tools to increase security visibility and developer action in GitHub.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-7">
+    <div class="wrap chapter-grid">
+      <div class="copy reveal">
+        <div class="chapter-no">7</div>
+        <h2>Focus on measurable outcomes.</h2>
+        <p>The business case is not just a feature checklist. It is earlier prevention, faster remediation, better coverage, fewer workflow handoffs, and stronger governance across the development lifecycle.</p>
+        <div class="talk-track"><strong>Customer value:</strong> GHAS helps turn security signals into developer action at PR time.</div>
+      </div>
+      <div class="stage reveal">
+        <div class="stage-title"><span>Outcome story</span><span class="pill">Business value</span></div>
+        <div class="metrics">
+          <div class="metric"><div class="num">Earlier</div><p>Security feedback before merge, not after release.</p></div>
+          <div class="metric"><div class="num">Faster</div><p>Developers remediate in the same workflow they use to ship.</p></div>
+          <div class="metric"><div class="num">Cleaner</div><p>Secrets and risky dependencies are caught closer to introduction.</p></div>
+          <div class="metric"><div class="num">Governed</div><p>Security checks align with repo policy and audit expectations.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <div class="final-card reveal">
+        <span class="eyebrow"><span class="pulse"></span> Executive summary</span>
+        <h2>GitHub Advanced Security brings security to the point of merge.</h2>
+        <p class="lede">GHAS complements existing AppSec investments by making security findings visible and actionable in GitHub, where developers review, fix, and merge code.</p>
+        <div class="rules">
+          <div class="rule"><strong>Complement your stack</strong><span>Keep specialized tools while adding GitHub-native security feedback.</span></div>
+          <div class="rule"><strong>Improve adoption</strong><span>Bring findings closer to the developer workflow and reduce handoffs.</span></div>
+          <div class="rule"><strong>Govern at merge</strong><span>Use PR context, branch protection, and auditability to support secure delivery.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const progress = document.getElementById('progress');
+  const updateProgress = () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+    progress.style.width = pct + '%';
+  };
+  updateProgress();
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('active');
+    });
+  }, { threshold: 0.25 });
+
+  document.querySelectorAll('.reveal, .stage, .copy').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
