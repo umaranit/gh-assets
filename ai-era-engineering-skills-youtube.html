@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Which Skills Should Engineers Invest In Now?</title>
+<style>
+  :root{
+    --bg:#0a1022;
+    --bg2:#17244a;
+    --card:#202c4d;
+    --card2:#2d3a5c;
+    --ink:#f7f9ff;
+    --muted:#aeb8d6;
+    --blue:#58a6ff;
+    --purple:#b57cff;
+    --mint:#45e6c2;
+    --green:#5ff078;
+    --yellow:#ffd166;
+    --red:#ff6b7a;
+    --line:rgba(255,255,255,.14);
+    --shadow:0 28px 90px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.06);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-snap-type:y mandatory}
+  body{
+    margin:0;
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,system-ui,Arial,sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 16% 10%,rgba(88,166,255,.25),transparent 28%),
+      radial-gradient(circle at 84% 18%,rgba(181,124,255,.22),transparent 30%),
+      radial-gradient(circle at 50% 84%,rgba(69,230,194,.13),transparent 35%),
+      linear-gradient(180deg,var(--bg),var(--bg2));
+    z-index:-2;
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.034) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.034) 1px,transparent 1px);
+    background-size:64px 64px;
+    mask-image:linear-gradient(180deg,rgba(0,0,0,.72),transparent 82%);
+    z-index:-1;
+  }
+
+  .slide{
+    min-height:100vh;
+    scroll-snap-align:start;
+    display:grid;
+    place-items:center;
+    padding:6vh 6vw;
+    position:relative;
+    overflow:hidden;
+  }
+  .slide::before{
+    content:"";
+    position:absolute;
+    width:55vw;
+    height:55vw;
+    max-width:760px;
+    max-height:760px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(88,166,255,.13),transparent 67%);
+    filter:blur(8px);
+    transform:translate(34vw,-28vh);
+    pointer-events:none;
+  }
+
+  h1,h2,p{margin:0}
+  .title-only h1{
+    max-width:1120px;
+    font-size:clamp(52px,8.6vw,122px);
+    line-height:.92;
+    letter-spacing:-.07em;
+    text-align:center;
+  }
+  .grad{background:linear-gradient(110deg,var(--blue),var(--purple) 50%,var(--mint));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .big-idea{
+    width:min(1120px,100%);
+    display:grid;
+    gap:30px;
+    text-align:center;
+    position:relative;
+    z-index:1;
+  }
+  .kicker{
+    justify-self:center;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 15px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.06);
+    color:var(--muted);
+    font-size:13px;
+    font-weight:900;
+    letter-spacing:1.25px;
+    text-transform:uppercase;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(95,240,120,.65);animation:pulse 1.8s infinite}
+  @keyframes pulse{70%{box-shadow:0 0 0 13px rgba(95,240,120,0)}}
+  .big-idea h2{
+    font-size:clamp(46px,7vw,96px);
+    line-height:.95;
+    letter-spacing:-.06em;
+  }
+  .one-line{
+    color:var(--muted);
+    font-size:clamp(22px,3vw,36px);
+    font-weight:750;
+    letter-spacing:-.03em;
+  }
+
+  .visual-card{
+    width:min(1120px,100%);
+    min-height:min(64vh,620px);
+    border-radius:38px;
+    border:1px solid rgba(255,255,255,.13);
+    background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025)),rgba(32,44,77,.74);
+    box-shadow:var(--shadow);
+    position:relative;
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    padding:34px;
+    z-index:1;
+  }
+  .visual-card::before,.visual-card::after{
+    content:"";
+    position:absolute;
+    border:1px dashed rgba(255,255,255,.16);
+    border-radius:50%;
+    pointer-events:none;
+  }
+  .visual-card::before{inset:-18% 10%;transform:rotate(31deg)}
+  .visual-card::after{inset:-24% 22%;transform:rotate(-28deg)}
+
+  .center-chip{
+    width:245px;
+    height:245px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    text-align:center;
+    background:linear-gradient(135deg,rgba(88,166,255,.32),rgba(181,124,255,.25),rgba(69,230,194,.16));
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:0 24px 70px rgba(0,0,0,.28);
+    position:relative;
+    z-index:3;
+  }
+  .center-chip strong{display:block;font-size:clamp(28px,3.2vw,42px);line-height:1.02;letter-spacing:-.045em}
+  .center-chip span{display:block;margin-top:14px;color:#c9d3ef;font-size:15px;font-weight:900;letter-spacing:1.7px;text-transform:uppercase}
+  .orbit-pill{
+    position:absolute;
+    z-index:4;
+    padding:14px 22px;
+    border-radius:999px;
+    background:rgba(255,255,255,.09);
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 16px 38px rgba(0,0,0,.2);
+    font-size:clamp(18px,2vw,25px);
+    font-weight:950;
+    letter-spacing:-.035em;
+    white-space:nowrap;
+  }
+  .o1{top:13%;left:11%}.o2{top:18%;right:10%}.o3{left:8%;bottom:19%}.o4{right:13%;bottom:18%}.o5{top:45%;left:6%}.o6{top:45%;right:7%}
+
+  .skill-slide{
+    grid-template-columns:minmax(0,1fr);
+  }
+  .skill-shell{
+    width:min(1120px,100%);
+    display:grid;
+    grid-template-columns:.82fr 1.18fr;
+    gap:46px;
+    align-items:center;
+    position:relative;
+    z-index:1;
+  }
+  .skill-number{
+    width:170px;
+    height:170px;
+    border-radius:44px;
+    display:grid;
+    place-items:center;
+    font-size:68px;
+    font-weight:950;
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+    box-shadow:0 24px 70px rgba(88,166,255,.25);
+  }
+  .skill-copy{display:grid;gap:20px}
+  .skill-copy h2{
+    font-size:clamp(52px,7.6vw,108px);
+    line-height:.9;
+    letter-spacing:-.07em;
+  }
+  .skill-copy p{
+    color:var(--muted);
+    font-size:clamp(24px,3.3vw,42px);
+    line-height:1.08;
+    font-weight:780;
+    letter-spacing:-.04em;
+  }
+  .mini-visual{
+    margin-top:28px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .mini-pill{
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.13);
+    background:rgba(255,255,255,.07);
+    color:#e6eeff;
+    font-size:15px;
+    font-weight:850;
+  }
+
+  .split{
+    width:min(1120px,100%);
+    display:grid;
+    grid-template-columns:1fr 86px 1fr;
+    gap:22px;
+    align-items:center;
+    position:relative;
+    z-index:1;
+  }
+  .panel{
+    min-height:330px;
+    border-radius:34px;
+    border:1px solid rgba(255,255,255,.13);
+    background:rgba(255,255,255,.065);
+    box-shadow:var(--shadow);
+    display:grid;
+    place-items:center;
+    padding:34px;
+    text-align:center;
+  }
+  .panel h2{font-size:clamp(36px,5vw,72px);line-height:.94;letter-spacing:-.055em}
+  .arrow{
+    width:86px;
+    height:86px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--mint),var(--blue));
+    color:#06162a;
+    font-size:40px;
+    font-weight:950;
+    box-shadow:0 18px 46px rgba(69,230,194,.28);
+  }
+
+  .closing h2{max-width:1180px}
+  .closing .one-line{max-width:920px;justify-self:center}
+
+  .hint{
+    position:fixed;
+    right:22px;
+    bottom:18px;
+    color:rgba(255,255,255,.45);
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.9px;
+    text-transform:uppercase;
+    z-index:20;
+  }
+
+  @media(max-width:860px){
+    .skill-shell,.split{grid-template-columns:1fr;text-align:center}
+    .skill-number{margin:0 auto;width:132px;height:132px;border-radius:34px;font-size:54px}
+    .mini-visual{justify-content:center}
+    .arrow{margin:auto;transform:rotate(90deg)}
+    .visual-card{min-height:76vh}
+    .orbit-pill{position:static;margin:7px;display:inline-flex}
+    .visual-card{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;align-content:center}
+    .center-chip{order:-1;margin:10px 100% 24px;width:220px;height:220px}
+  }
+
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<!--
+YouTube deck intent:
+- Keep on-screen text minimal.
+- Use each slide as a visual anchor.
+- Speak the detail verbally while screen recording or presenting.
+-->
+
+<section class="slide title-only" id="slide-1" aria-label="Opening question">
+  <!-- Speaker note: Open with the question. No introduction yet. Let the viewer immediately feel the relevance. -->
+  <h1>Which skills should engineers invest in <span class="grad">now?</span></h1>
+</section>
+
+<section class="slide" id="slide-2" aria-label="Skills orbit human engineering judgment">
+  <!-- Speaker note: Explain that tools change, but judgment remains the center. The rest of the video breaks down these durable skills. -->
+  <div class="visual-card">
+    <div class="orbit-pill o1">🎯 Problem framing</div>
+    <div class="orbit-pill o2">🧩 Context engineering</div>
+    <div class="orbit-pill o3">✅ Verification</div>
+    <div class="orbit-pill o4">🛡️ Risk judgment</div>
+    <div class="orbit-pill o5">🤖 Delegation</div>
+    <div class="orbit-pill o6">🗣️ Communication</div>
+    <div class="center-chip"><div><strong>Human<br/>engineering<br/>judgment</strong><span>the core skill</span></div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3" aria-label="The work changes">
+  <!-- Speaker note: AI changes the shape of software work. It does not remove the need to decide what good looks like. -->
+  <div class="big-idea">
+    <span class="kicker"><span class="dot"></span> The shift</span>
+    <h2>Less typing.<br/><span class="grad">More judgment.</span></h2>
+    <p class="one-line">The scarce skill is knowing what should be built.</p>
+  </div>
+</section>
+
+<section class="slide skill-slide" id="slide-4" aria-label="Problem framing">
+  <!-- Speaker note: Before AI can help, the engineer must turn ambiguity into a clear problem. -->
+  <div class="skill-shell">
+    <div class="skill-number">1</div>
+    <div class="skill-copy">
+      <h2>Problem<br/><span class="grad">framing</span></h2>
+      <p>Turn vague requests into clear outcomes.</p>
+      <div class="mini-visual"><span class="mini-pill">Intent</span><span class="mini-pill">Constraints</span><span class="mini-pill">Success criteria</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide skill-slide" id="slide-5" aria-label="Context engineering">
+  <!-- Speaker note: Context engineering is the practical skill of giving the AI the right facts, examples, constraints, and boundaries. -->
+  <div class="skill-shell">
+    <div class="skill-number">2</div>
+    <div class="skill-copy">
+      <h2>Context<br/><span class="grad">engineering</span></h2>
+      <p>Better context creates better output.</p>
+      <div class="mini-visual"><span class="mini-pill">Examples</span><span class="mini-pill">Architecture</span><span class="mini-pill">Non-goals</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide skill-slide" id="slide-6" aria-label="Verification">
+  <!-- Speaker note: The faster we can generate, the more important verification becomes. Fast feedback is real speed. -->
+  <div class="skill-shell">
+    <div class="skill-number">3</div>
+    <div class="skill-copy">
+      <h2><span class="grad">Verification</span></h2>
+      <p>Trust the evidence, not the autocomplete.</p>
+      <div class="mini-visual"><span class="mini-pill">Tests</span><span class="mini-pill">Diff review</span><span class="mini-pill">Runtime checks</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide skill-slide" id="slide-7" aria-label="Systems thinking">
+  <!-- Speaker note: AI may be strong at local code, but production software is a system of APIs, data, operations, users, and teams. -->
+  <div class="skill-shell">
+    <div class="skill-number">4</div>
+    <div class="skill-copy">
+      <h2>Systems<br/><span class="grad">thinking</span></h2>
+      <p>Software is bigger than one snippet.</p>
+      <div class="mini-visual"><span class="mini-pill">APIs</span><span class="mini-pill">Data</span><span class="mini-pill">Operations</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide skill-slide" id="slide-8" aria-label="Delegation">
+  <!-- Speaker note: Treat AI like a fast teammate: scope the task, set guardrails, inspect the work, and keep ownership. -->
+  <div class="skill-shell">
+    <div class="skill-number">5</div>
+    <div class="skill-copy">
+      <h2><span class="grad">Delegation</span></h2>
+      <p>Give AI bounded work, not blind trust.</p>
+      <div class="mini-visual"><span class="mini-pill">Scope</span><span class="mini-pill">Checkpoints</span><span class="mini-pill">Review</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide skill-slide" id="slide-9" aria-label="Risk judgment">
+  <!-- Speaker note: AI can create insecure, non-compliant, or inappropriate output quickly. Engineers need risk instincts close to the code. -->
+  <div class="skill-shell">
+    <div class="skill-number">6</div>
+    <div class="skill-copy">
+      <h2>Risk<br/><span class="grad">judgment</span></h2>
+      <p>Security and privacy are engineering skills.</p>
+      <div class="mini-visual"><span class="mini-pill">Security</span><span class="mini-pill">Privacy</span><span class="mini-pill">Provenance</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide skill-slide" id="slide-10" aria-label="Communication">
+  <!-- Speaker note: AI can draft code, but engineers still align people. Specs, tradeoffs, and decisions become more important. -->
+  <div class="skill-shell">
+    <div class="skill-number">7</div>
+    <div class="skill-copy">
+      <h2><span class="grad">Communication</span></h2>
+      <p>Clarity turns ideas into shipped work.</p>
+      <div class="mini-visual"><span class="mini-pill">Specs</span><span class="mini-pill">Tradeoffs</span><span class="mini-pill">Decisions</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-11" aria-label="From code typist to outcome owner">
+  <!-- Speaker note: This is the narrative pivot. The role evolves from writing every line to owning the outcome and validating the result. -->
+  <div class="split">
+    <div class="panel"><h2>Code<br/>typist</h2></div>
+    <div class="arrow">→</div>
+    <div class="panel"><h2><span class="grad">Outcome<br/>owner</span></h2></div>
+  </div>
+</section>
+
+<section class="slide closing" id="slide-12" aria-label="Closing takeaway">
+  <!-- Speaker note: Close with your point of view. AI amplifies engineers who think clearly, verify rigorously, and own outcomes. -->
+  <div class="big-idea">
+    <span class="kicker"><span class="dot"></span> Closing thought</span>
+    <h2>AI amplifies engineers who <span class="grad">own outcomes.</span></h2>
+    <p class="one-line">Think clearly. Verify rigorously. Communicate well.</p>
+  </div>
+</section>
+
+<div class="hint">Scroll ↓</div>
+</body>
+</html>

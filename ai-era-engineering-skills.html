@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Skills That Matter Most for Engineers in the AI Era</title>
+<style>
+  :root{
+    --bg:#080b16;
+    --bg2:#101a2f;
+    --panel:#121d35;
+    --panel2:#172541;
+    --ink:#f6f9ff;
+    --muted:#aebbd2;
+    --line:rgba(255,255,255,.13);
+    --blue:#58a6ff;
+    --purple:#b57cff;
+    --mint:#45e6c2;
+    --green:#5ff078;
+    --yellow:#ffd166;
+    --orange:#ffad4d;
+    --red:#ff6b7a;
+    --shadow:0 24px 76px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.06);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,system-ui,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 16% 10%,rgba(88,166,255,.25),transparent 28%),
+      radial-gradient(circle at 84% 14%,rgba(181,124,255,.22),transparent 30%),
+      radial-gradient(circle at 50% 72%,rgba(69,230,194,.11),transparent 36%),
+      linear-gradient(180deg,var(--bg),var(--bg2) 48%,#08101f);
+    line-height:1.55;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+    background-size:58px 58px;
+    mask-image:linear-gradient(180deg,rgba(0,0,0,.78),transparent 82%);
+  }
+
+  a{color:var(--blue);text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  .topbar{
+    position:fixed;
+    top:0;left:0;right:0;
+    z-index:80;
+    background:rgba(8,11,22,.74);
+    border-bottom:1px solid var(--line);
+    backdrop-filter:blur(18px);
+  }
+  .topbar-inner{max-width:1180px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:850;letter-spacing:.2px}
+  .brand-mark{width:36px;height:36px;border-radius:13px;display:grid;place-items:center;background:conic-gradient(from 160deg,var(--blue),var(--purple),var(--mint),var(--blue));box-shadow:0 0 30px rgba(88,166,255,.35)}
+  .progress-shell{width:min(360px,36vw);height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+  .progress{height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--blue),var(--purple));border-radius:999px}
+  @media(max-width:720px){.progress-shell{display:none}.brand{font-size:14px}}
+
+  .hero{min-height:100vh;display:grid;place-items:center;text-align:center;padding:118px 0 70px;position:relative}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 15px;border:1px solid rgba(255,255,255,.13);border-radius:999px;background:rgba(255,255,255,.055);color:var(--muted);font-size:12px;font-weight:900;letter-spacing:1.35px;text-transform:uppercase}
+  .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(95,240,120,.65);animation:pulse 1.8s infinite}
+  @keyframes pulse{70%{box-shadow:0 0 0 13px rgba(95,240,120,0)}}
+  h1{font-size:clamp(40px,7vw,84px);line-height:.98;margin:24px auto 0;max-width:1080px;letter-spacing:-.058em}
+  .grad{background:linear-gradient(110deg,var(--blue),var(--purple) 48%,var(--mint));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{max-width:820px;margin:24px auto 0;color:var(--muted);font-size:clamp(17px,2vw,20px)}
+  .opening-hook{max-width:860px;margin:28px auto 0;padding:24px;border-radius:26px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);box-shadow:0 18px 48px rgba(0,0,0,.22);text-align:left}
+  .opening-hook p{margin:0;color:var(--muted);font-size:clamp(16px,1.8vw,19px)}
+  .opening-hook p + p{margin-top:12px}
+  .opening-hook strong{color:var(--ink)}
+  .opening-question{display:block;margin-top:12px;color:#e9f7ff;font-weight:900;font-size:clamp(19px,2.3vw,26px);line-height:1.22;letter-spacing:-.025em}
+  .scroll-cue{margin-top:34px;color:var(--muted);font-size:13px;font-weight:850;text-transform:uppercase;letter-spacing:1.2px;animation:bob 1.8s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(8px)}}
+
+  .hero-stage{
+    width:min(980px,100%);
+    min-height:330px;
+    margin:46px auto 0;
+    border-radius:34px;
+    border:1px solid rgba(255,255,255,.11);
+    background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025)),rgba(18,29,53,.76);
+    box-shadow:var(--shadow);
+    position:relative;
+    overflow:hidden;
+    display:grid;
+    place-items:center;
+    padding:30px;
+  }
+  .hero-stage::before{content:"";position:absolute;inset:34px;border:1px dashed rgba(255,255,255,.16);border-radius:50%;animation:spin 28s linear infinite}
+  .hero-stage::after{content:"";position:absolute;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(69,230,194,.28),transparent 68%);filter:blur(4px)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .center-chip{position:relative;z-index:2;width:190px;height:190px;border-radius:50%;display:grid;place-items:center;text-align:center;background:linear-gradient(135deg,rgba(88,166,255,.25),rgba(181,124,255,.22),rgba(69,230,194,.18));border:1px solid rgba(255,255,255,.16);box-shadow:0 18px 50px rgba(0,0,0,.28)}
+  .center-chip strong{font-size:22px;line-height:1.05;letter-spacing:-.02em}.center-chip span{display:block;margin-top:7px;color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px}
+  .orbit{position:absolute;z-index:3;padding:10px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.075);box-shadow:0 12px 30px rgba(0,0,0,.18);font-weight:900;font-size:13px;color:#e9f2ff}
+  .orbit.o1{top:42px;left:11%}.orbit.o2{top:70px;right:11%}.orbit.o3{bottom:56px;left:8%}.orbit.o4{bottom:48px;right:9%}.orbit.o5{top:48%;left:4%}.orbit.o6{top:48%;right:4%}
+  @media(max-width:720px){.hero-stage{min-height:470px}.orbit{position:static;margin:6px;display:inline-flex}.center-chip{margin:16px auto}.hero-stage::before{border-radius:34px}}
+
+  .chapter{position:relative;min-height:100vh;display:grid;align-items:center;padding:96px 0}
+  .chapter-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:34px;align-items:center}
+  .chapter:nth-child(even) .chapter-grid{grid-template-columns:1.08fr .92fr}
+  @media(max-width:920px){.chapter-grid,.chapter:nth-child(even) .chapter-grid{grid-template-columns:1fr}.stage{position:relative!important;top:auto!important}}
+  .copy{padding:30px;border-radius:28px;background:rgba(18,29,53,.78);border:1px solid rgba(255,255,255,.1);box-shadow:0 18px 52px rgba(0,0,0,.22);backdrop-filter:blur(12px)}
+  .chapter-no{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:15px;background:linear-gradient(135deg,var(--blue),var(--purple));font-size:18px;font-weight:950;margin-bottom:16px}
+  .copy h2{font-size:clamp(28px,4vw,46px);line-height:1.08;margin:0;letter-spacing:-.037em}
+  .copy p{color:var(--muted);font-size:17px;margin:16px 0 0}
+  .talk-track{margin-top:18px;padding:16px 18px;border-left:4px solid var(--mint);border-radius:0 16px 16px 0;background:rgba(69,230,194,.09);color:#dffff8;font-weight:760}
+  .talk-track strong{color:var(--mint)}
+  .stage{position:sticky;top:98px;min-height:520px;border-radius:34px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025)),var(--panel);box-shadow:var(--shadow);overflow:hidden;padding:26px}
+  .stage-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;color:var(--muted);font-size:12px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase}
+  .pill{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#d8e7ff}
+
+  .shift-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+  .shift-card{padding:22px;border-radius:22px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);min-height:260px;position:relative;overflow:hidden}
+  .shift-card h3{margin:0;font-size:20px}.shift-card ul{margin:16px 0 0;padding-left:18px;color:var(--muted)}.shift-card li{margin:10px 0}.shift-card.old{border-color:rgba(255,209,102,.23)}.shift-card.new{border-color:rgba(95,240,120,.27);background:rgba(95,240,120,.07)}
+  .shift-card .label{display:inline-flex;margin-bottom:12px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.07);font-size:12px;font-weight:900;color:#e8f1ff}
+  @media(max-width:620px){.shift-grid{grid-template-columns:1fr}}
+
+  .context-stack{display:grid;gap:13px;margin-top:24px}
+  .context-row{display:grid;grid-template-columns:58px 1fr auto;gap:14px;align-items:center;padding:16px;border-radius:20px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);opacity:.42;transform:translateX(28px);transition:all .58s cubic-bezier(.22,1,.36,1)}
+  .active .context-row{opacity:1;transform:none}.context-row:nth-child(2){transition-delay:.09s}.context-row:nth-child(3){transition-delay:.18s}.context-row:nth-child(4){transition-delay:.27s}.context-row:nth-child(5){transition-delay:.36s}
+  .context-icon{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;background:rgba(88,166,255,.13);border:1px solid rgba(88,166,255,.24);font-size:24px}.context-row h3{margin:0;font-size:16px}.context-row p{margin:4px 0 0;color:var(--muted);font-size:13.5px}.context-tag{font-size:12px;font-weight:950;color:var(--mint)}
+
+  .test-gate{margin-top:26px;display:grid;gap:14px}
+  .gate-row{display:grid;grid-template-columns:64px 1fr 90px;align-items:center;gap:14px;padding:17px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);opacity:.46;transform:translateY(16px);transition:all .55s cubic-bezier(.22,1,.36,1)}
+  .active .gate-row{opacity:1;transform:none}.gate-row:nth-child(2){transition-delay:.1s}.gate-row:nth-child(3){transition-delay:.2s}.gate-row:nth-child(4){transition-delay:.3s}
+  .gate-icon{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;font-size:24px;background:rgba(69,230,194,.12);border:1px solid rgba(69,230,194,.24)}.gate-row h3{margin:0;font-size:16px}.gate-row p{margin:4px 0 0;color:var(--muted);font-size:13.5px}.gate-pass{font-size:12px;font-weight:950;color:var(--green);text-align:right}
+
+  .system-map{position:relative;min-height:390px;margin-top:20px}
+  .node{position:absolute;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.11);box-shadow:0 12px 34px rgba(0,0,0,.18);font-weight:900}.node span{display:block;color:var(--muted);font-size:12px;font-weight:700;margin-top:3px}.node.center{left:50%;top:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,rgba(88,166,255,.22),rgba(181,124,255,.18));border-color:rgba(88,166,255,.32);text-align:center}.node.n1{left:4%;top:8%}.node.n2{right:4%;top:10%}.node.n3{left:7%;bottom:12%}.node.n4{right:5%;bottom:12%}.line{position:absolute;height:2px;background:linear-gradient(90deg,transparent,rgba(69,230,194,.7),transparent);transform-origin:left center;opacity:.35}.active .line{animation:flow 1.7s ease-in-out infinite}@keyframes flow{50%{opacity:1;filter:drop-shadow(0 0 8px rgba(69,230,194,.55))}}.line.l1{left:28%;top:31%;width:230px;transform:rotate(18deg)}.line.l2{right:28%;top:32%;width:230px;transform:rotate(162deg)}.line.l3{left:27%;bottom:29%;width:240px;transform:rotate(-18deg)}.line.l4{right:27%;bottom:29%;width:240px;transform:rotate(198deg)}
+  @media(max-width:640px){.system-map{min-height:auto;display:grid;gap:12px}.node{position:static;transform:none!important}.line{display:none}}
+
+  .agent-board{display:grid;gap:14px;margin-top:24px}.agent-task{display:grid;grid-template-columns:54px 1fr auto;gap:14px;align-items:center;padding:16px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);opacity:.45;transform:translateX(24px);transition:all .55s cubic-bezier(.22,1,.36,1)}.active .agent-task{opacity:1;transform:none}.agent-task:nth-child(2){transition-delay:.1s}.agent-task:nth-child(3){transition-delay:.2s}.agent-task:nth-child(4){transition-delay:.3s}.agent-icon{width:50px;height:50px;border-radius:17px;display:grid;place-items:center;font-size:23px;background:rgba(181,124,255,.13);border:1px solid rgba(181,124,255,.24)}.agent-task h3{margin:0;font-size:16px}.agent-task p{margin:4px 0 0;color:var(--muted);font-size:13.5px}.agent-role{font-size:12px;font-weight:950;color:var(--purple)}
+
+  .skill-matrix{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:24px}.skill{padding:18px;border-radius:20px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);min-height:150px;transition:transform .25s,box-shadow .25s,border-color .25s}.skill:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.22);border-color:rgba(69,230,194,.45)}.skill b{display:block;font-size:17px}.skill span{display:block;color:var(--muted);font-size:13.5px;margin-top:8px}.skill .emoji{font-size:28px;margin-bottom:10px}@media(max-width:620px){.skill-matrix{grid-template-columns:1fr}}
+
+  .comm-board{display:grid;grid-template-columns:1fr 70px 1fr;gap:16px;align-items:center;margin-top:26px}.comm-card{padding:22px;border-radius:22px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);min-height:240px}.comm-card h3{margin:0;font-size:19px}.comm-card p{color:var(--muted);margin:12px 0 0}.arrow{height:70px;width:70px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--mint),var(--blue));font-size:32px;font-weight:950;box-shadow:0 0 34px rgba(69,230,194,.28)}@media(max-width:720px){.comm-board{grid-template-columns:1fr}.arrow{margin:auto;transform:rotate(90deg)}}
+
+  .final{padding:100px 0 120px;text-align:center}.final-card{max-width:1040px;margin:0 auto;padding:42px;border-radius:34px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,rgba(88,166,255,.12),rgba(181,124,255,.12),rgba(69,230,194,.08));box-shadow:var(--shadow)}.final h2{font-size:clamp(32px,5vw,56px);line-height:1.05;margin:22px 0 0;letter-spacing:-.04em}.rules{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px;text-align:left}.rule{padding:18px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09)}.rule strong{display:block;margin-bottom:7px}.rule span{color:var(--muted);font-size:13.5px}.prompt{margin-top:28px;padding:18px 20px;border-radius:20px;border:1px solid rgba(69,230,194,.22);background:rgba(69,230,194,.08);color:#e3fff9;font-weight:800}@media(max-width:920px){.rules{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.rules{grid-template-columns:1fr}}
+
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s cubic-bezier(.22,1,.36,1)}
+  .reveal.active{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}.context-row,.gate-row,.agent-task{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="brand-mark">🧭</span><span>Engineering Skills for the AI Era</span></div>
+    <div class="progress-shell" aria-hidden="true"><div class="progress" id="progress"></div></div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap reveal">
+    <span class="eyebrow"><span class="pulse"></span> Opening question</span>
+    <h1>Which skills should engineers invest in <span class="grad">now?</span></h1>
+    <div class="opening-hook" aria-label="Opening narration hook">
+      <p>Every day, we see headlines asking whether AI will replace software engineers.</p>
+      <p>If you have been in this industry for a while, you have probably wondered:</p>
+      <span class="opening-question">Should I spend all my time learning AI tools — or are there skills that remain valuable no matter how technology changes?</span>
+      <p><strong>That is what this video is about.</strong></p>
+    </div>
+    <p class="lede">AI is changing the center of gravity. The most effective engineers will not simply type code faster — they will frame better problems, provide better context, verify outputs, integrate systems, and make sharper product and risk decisions.</p>
+
+    <div class="hero-stage" aria-label="Six AI-era engineering skills orbiting human judgment">
+      <div class="orbit o1">🎯 Problem framing</div>
+      <div class="orbit o2">🧩 Context engineering</div>
+      <div class="orbit o3">✅ Verification</div>
+      <div class="orbit o4">🛡️ Risk judgment</div>
+      <div class="orbit o5">🤖 Delegation</div>
+      <div class="orbit o6">🗣️ Communication</div>
+      <div class="center-chip"><div><strong>Human<br/>engineering<br/>judgment</strong><span>still the core skill</span></div></div>
+    </div>
+    <div class="scroll-cue">Scroll the story ↓</div>
+  </div>
+</header>
+
+<main>
+  <section class="chapter" id="chapter-1">
+    <div class="wrap chapter-grid">
+      <div class="copy reveal">
+        <div class="chapter-no">1</div>
+        <h2>The job shifts from typing code to shaping outcomes.</h2>
+        <p>AI tools can help draft code, tests, documentation, and refactors. That makes “write the next line” less of the whole job. The higher-value skill becomes knowing what should be built, how it should behave, and whether the result is good enough to ship.</p>
+        <div class="talk-track"><strong>Key message:</strong> AI tends to amplify engineers who can turn ambiguity into precise, testable, valuable work.</div>
+      </div>
+      <div class="stage reveal">
+        <div class="stage-title"><span>Old center of gravity → new center of gravity</span><span class="pill">Mindset shift</span></div>
+        <div class="shift-grid">
+          <div class="shift-card old">
+            <span class="label">Before</span>
+            <h3>Implementation speed</h3>
+            <ul>
+              <li>Know syntax from memory</li>
+              <li>Write boilerplate quickly</li>
+              <li>Search for examples</li>
+              <li>Fix defects after review</li>
+            </ul>
+          </div>
+          <div class="shift-card new">
+            <span class="label">AI era</span>
+            <h3>Outcome quality</h3>
+            <ul>
+              <li>Frame the right problem</li>
+              <li>Give precise context</li>
+              <li>Evaluate generated work</li>
+              <li>Own reliability, security, and value</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-2">
+    <div class="wrap chapter-grid">
+      <div class="stage reveal">
+        <div class="stage-title"><span>Context package</span><span class="pill">Better input → better output</span></div>
+        <div class="context-stack">
+          <div class="context-row"><div class="context-icon">🎯</div><div><h3>Intent</h3><p>What user outcome or business goal are we trying to achieve?</p></div><span class="context-tag">Why</span></div>
+          <div class="context-row"><div class="context-icon">📐</div><div><h3>Constraints</h3><p>Performance, security, compatibility, API contracts, and edge cases.</p></div><span class="context-tag">Rules</span></div>
+          <div class="context-row"><div class="context-icon">📚</div><div><h3>Examples</h3><p>Similar code, tests, patterns, logs, and known failure modes.</p></div><span class="context-tag">Pattern</span></div>
+          <div class="context-row"><div class="context-icon">🧪</div><div><h3>Acceptance criteria</h3><p>How we know the generated work is correct and complete.</p></div><span class="context-tag">Done</span></div>
+          <div class="context-row"><div class="context-icon">🚫</div><div><h3>Non-goals</h3><p>What not to change, not to optimize, or not to invent.</p></div><span class="context-tag">Boundaries</span></div>
+        </div>
+      </div>
+      <div class="copy reveal">
+        <div class="chapter-no">2</div>
+        <h2>Context engineering becomes a core engineering skill.</h2>
+        <p>Strong AI-assisted engineers do not just “prompt better.” They package the right context: intent, constraints, examples, tests, architecture, and boundaries. They make the task legible to both humans and models.</p>
+        <div class="talk-track"><strong>Practice:</strong> Before asking AI to implement, ask: “What information would a strong teammate need to do this safely?”</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-3">
+    <div class="wrap chapter-grid">
+      <div class="copy reveal">
+        <div class="chapter-no">3</div>
+        <h2>Verification is the new velocity.</h2>
+        <p>As generation gets easier, review and validation become more important. Engineers who can design strong tests, evaluate behavior, inspect diffs, and catch subtle regressions can move faster with less risk.</p>
+        <div class="talk-track"><strong>Key message:</strong> Trusting AI blindly is not speed. Fast feedback loops are speed.</div>
+      </div>
+      <div class="stage reveal">
+        <div class="stage-title"><span>Confidence gates</span><span class="pill">Ship with evidence</span></div>
+        <div class="test-gate">
+          <div class="gate-row"><div class="gate-icon">🔍</div><div><h3>Diff review</h3><p>Understand every changed file, not just whether it compiles.</p></div><span class="gate-pass">Review</span></div>
+          <div class="gate-row"><div class="gate-icon">🧪</div><div><h3>Tests</h3><p>Happy path, edge cases, failure paths, and regression coverage.</p></div><span class="gate-pass">Evidence</span></div>
+          <div class="gate-row"><div class="gate-icon">📊</div><div><h3>Runtime checks</h3><p>Logs, metrics, traces, benchmarks, and real data validation.</p></div><span class="gate-pass">Observe</span></div>
+          <div class="gate-row"><div class="gate-icon">🧠</div><div><h3>Reasoning check</h3><p>Ask “what assumption would make this solution fail?”</p></div><span class="gate-pass">Challenge</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-4">
+    <div class="wrap chapter-grid">
+      <div class="stage reveal">
+        <div class="stage-title"><span>Real engineering is integration</span><span class="pill">Systems thinking</span></div>
+        <div class="system-map">
+          <div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div>
+          <div class="node n1">Frontend<span>UX, accessibility, state</span></div>
+          <div class="node n2">APIs<span>contracts, errors, auth</span></div>
+          <div class="node center">Feature outcome<span>works in the whole system</span></div>
+          <div class="node n3">Data<span>schema, quality, migration</span></div>
+          <div class="node n4">Operations<span>deploy, observe, recover</span></div>
+        </div>
+      </div>
+      <div class="copy reveal">
+        <div class="chapter-no">4</div>
+        <h2>Systems thinking beats snippet thinking.</h2>
+        <p>AI tools are often strongest on well-scoped local code tasks. Production software is not local. The engineer’s advantage is understanding cross-file behavior, dependencies, runtime constraints, failure modes, and the social system around ownership and review.</p>
+        <div class="talk-track"><strong>Practice:</strong> Ask AI for implementation help, but keep architectural ownership with the engineer.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-5">
+    <div class="wrap chapter-grid">
+      <div class="copy reveal">
+        <div class="chapter-no">5</div>
+        <h2>Delegation becomes a design skill.</h2>
+        <p>Many agentic tools can explore codebases, make multi-file edits, run tests, and propose fixes. The valuable skill is decomposing work into safe chunks, setting guardrails, reviewing intermediate outputs, and knowing when to take back control.</p>
+        <div class="talk-track"><strong>Key message:</strong> Strong engineers manage AI like a high-speed teammate: clear task, tight scope, visible progress, reviewed result.</div>
+      </div>
+      <div class="stage reveal">
+        <div class="stage-title"><span>Delegate safely</span><span class="pill">Agent workflow</span></div>
+        <div class="agent-board">
+          <div class="agent-task"><div class="agent-icon">🧭</div><div><h3>Give a bounded mission</h3><p>Specific goal, files or areas, constraints, and expected output.</p></div><span class="agent-role">Scope</span></div>
+          <div class="agent-task"><div class="agent-icon">🧱</div><div><h3>Break work into checkpoints</h3><p>Explore first, plan second, edit third, test fourth.</p></div><span class="agent-role">Flow</span></div>
+          <div class="agent-task"><div class="agent-icon">🛑</div><div><h3>Set guardrails</h3><p>No secrets, no broad rewrites, no public API changes unless asked.</p></div><span class="agent-role">Safety</span></div>
+          <div class="agent-task"><div class="agent-icon">✅</div><div><h3>Review and verify</h3><p>Inspect diffs, run tests, and validate behavior before accepting.</p></div><span class="agent-role">Ownership</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-6">
+    <div class="wrap chapter-grid">
+      <div class="stage reveal">
+        <div class="stage-title"><span>Risk-aware engineering</span><span class="pill">Trust but verify</span></div>
+        <div class="skill-matrix">
+          <div class="skill"><div class="emoji">🛡️</div><b>Security judgment</b><span>Threat model generated code, dependencies, secrets, auth flows, and data handling.</span></div>
+          <div class="skill"><div class="emoji">🔐</div><b>Privacy judgment</b><span>Know what context is safe to share and what data needs boundaries.</span></div>
+          <div class="skill"><div class="emoji">⚖️</div><b>Responsible AI judgment</b><span>Check for bias, hallucination, misuse, unsafe outputs, and over-automation.</span></div>
+          <div class="skill"><div class="emoji">📜</div><b>License and provenance judgment</b><span>Understand code origin, package health, and compliance expectations.</span></div>
+        </div>
+      </div>
+      <div class="copy reveal">
+        <div class="chapter-no">6</div>
+        <h2>Risk judgment moves closer to every engineer.</h2>
+        <p>AI can lower the cost of creating software, including software with security, privacy, or quality issues. Engineers need stronger instincts around security, privacy, provenance, and responsible use — not as paperwork, but as part of daily delivery.</p>
+        <div class="talk-track"><strong>Key message:</strong> AI does not remove engineering accountability. It raises the premium on judgment.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="chapter-7">
+    <div class="wrap chapter-grid">
+      <div class="copy reveal">
+        <div class="chapter-no">7</div>
+        <h2>Communication becomes an engineering multiplier.</h2>
+        <p>AI can draft code, but it does not align stakeholders by itself. Engineers who can explain tradeoffs, write clear specs, document decisions, and translate between product, security, operations, and leadership can create disproportionate impact.</p>
+        <div class="talk-track"><strong>Practice:</strong> Treat prompts, specs, tests, PR descriptions, and decision records as one connected communication system.</div>
+      </div>
+      <div class="stage reveal">
+        <div class="stage-title"><span>From ambiguity to alignment</span><span class="pill">Communication loop</span></div>
+        <div class="comm-board">
+          <div class="comm-card"><h3>Messy intent</h3><p>“Can we add AI to this workflow?” “Make this faster.” “Customers are confused.” “Security is worried.”</p></div>
+          <div class="arrow">→</div>
+          <div class="comm-card"><h3>Engineering clarity</h3><p>Problem statement, constraints, tradeoffs, acceptance criteria, risks, rollout plan, and measurable success.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <div class="final-card reveal">
+        <span class="eyebrow"><span class="pulse"></span> The practical takeaway</span>
+        <h2>The AI-era engineer is less of a code typist and more of an outcome designer.</h2>
+        <p class="lede">The durable skills are the ones that make AI useful, safe, and valuable: framing, context, verification, systems thinking, delegation, risk judgment, and communication.</p>
+        <div class="rules">
+          <div class="rule"><strong>Frame better problems</strong><span>Turn ambiguity into precise, valuable work.</span></div>
+          <div class="rule"><strong>Package better context</strong><span>Give AI the facts, constraints, and examples it needs.</span></div>
+          <div class="rule"><strong>Verify with evidence</strong><span>Use tests, reviews, logs, metrics, and reasoning checks.</span></div>
+          <div class="rule"><strong>Own the outcome</strong><span>Keep human judgment responsible for quality, risk, and value.</span></div>
+        </div>
+        <div class="prompt">Closing line: “My view: AI will amplify engineers who can think clearly, verify rigorously, and own outcomes.”</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const progress = document.getElementById('progress');
+  const updateProgress = () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+    progress.style.width = pct + '%';
+  };
+  updateProgress();
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('active');
+    });
+  }, { threshold: 0.25 });
+
+  document.querySelectorAll('.reveal, .stage, .copy').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
